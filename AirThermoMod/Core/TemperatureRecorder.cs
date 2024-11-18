@@ -36,7 +36,7 @@ namespace AirThermoMod.Core
         public string SimpleDescription()
         {
             var sb = new StringBuilder();
-            TemperatureSamples.Select(sample => $"[{sample.Time / 60}, {sample.Temperature}]").Foreach(str => sb.AppendLine(str));
+            TemperatureSamples.Select(sample => $"[{sample.Time / 60}, {sample.Temperature}]").Foreach(str => sb.Append(str));
             return sb.ToString();
         }
     }
