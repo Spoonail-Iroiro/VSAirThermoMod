@@ -56,9 +56,14 @@ namespace AirThermoMod.BlockEntities
         // Update lastUpdateTotalHours and calculate nextUpdateRoundedTotalMinutes
         protected void UpdateTimes(double totalHoursLastUpdate)
         {
-            this.totalHoursLastUpdate = totalHoursLastUpdate;
+            if (Api.Side == EnumAppSide.Server)
+            {
+                this.totalHoursLastUpdate = totalHoursLastUpdate;
 
-            nextUpdateRoundedTotalMinutes = NextUpdateRoundedTotalMinutes(Api.World.Calendar.HoursPerDay, totalHoursLastUpdate, intervalMinutes);
+                nextUpdateRoundedTotalMinutes = NextUpdateRoundedTotalMinutes(Api.World.Calendar.HoursPerDay, totalHoursLastUpdate, intervalMinutes);
+
+                MarkDirty();
+            }
         }
 
         public void OnBlockPlaced()
@@ -88,12 +93,20 @@ namespace AirThermoMod.BlockEntities
             }
             return true;
         }
+
+        protected void SampleTemperaturePeriodical(double totalHoursUntil)
+        {
+        }
+
+
+
+
         public void Update(float dt)
         {
             if (!(Api as ICoreServerAPI).World.IsFullyLoadedChunk(Pos)) return;
 
         }
-        public int NextUpdateRoundedTotalMinutes(float vsHourPerDay, double totalHours, int intervalMinutes)
+        public static int NextUpdateRoundedTotalMinutes(float vsHourPerDay, double totalHours, int intervalMinutes)
         {
             int minutesPerDay = TimeUtil.MinutesPerDay(vsHourPerDay);
 
