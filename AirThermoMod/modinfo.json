@@ -1,0 +1,13 @@
+{
+  "type": "code",
+  "modid": "airthermomod",
+  "name": "Air Thermometer",
+  "authors": [
+    "Spoonail"
+  ],
+  "description": "Air thrmometer",
+  "version": "0.1.0",
+  "dependencies": {
+    "game": ""
+  }
+}
