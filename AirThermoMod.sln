@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AirThermoMod", "AirThermoMo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CakeBuild", "ZZCakeBuild\CakeBuild.csproj", "{4F10139D-FBD0-45F0-9F83-8F5B95FF39F1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AirThermoMod.Tests", "AirThermoMod.Tests\AirThermoMod.Tests.csproj", "{64AC7C6B-FA32-4FC1-B880-CEEDA04A27C0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{4F10139D-FBD0-45F0-9F83-8F5B95FF39F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F10139D-FBD0-45F0-9F83-8F5B95FF39F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F10139D-FBD0-45F0-9F83-8F5B95FF39F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64AC7C6B-FA32-4FC1-B880-CEEDA04A27C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64AC7C6B-FA32-4FC1-B880-CEEDA04A27C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64AC7C6B-FA32-4FC1-B880-CEEDA04A27C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64AC7C6B-FA32-4FC1-B880-CEEDA04A27C0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
