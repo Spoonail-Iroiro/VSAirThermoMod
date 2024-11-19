@@ -8,20 +8,16 @@ using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.Client.NoObf;
 
-namespace AirThermoMod.Blocks
-{
-    internal class BlockAirThermo : Block
-    {
-        public override void OnBlockPlaced(IWorldAccessor world, BlockPos blockPos, ItemStack byItemStack = null)
-        {
+namespace AirThermoMod.Blocks {
+    internal class BlockAirThermo : Block {
+        public override void OnBlockPlaced(IWorldAccessor world, BlockPos blockPos, ItemStack byItemStack = null) {
             base.OnBlockPlaced(world, blockPos, byItemStack);
 
             var be = GetBlockEntity<BEAirThermo>(blockPos);
             be?.OnBlockPlaced();
         }
 
-        public override bool CanPlaceBlock(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel, ref string failureCode)
-        {
+        public override bool CanPlaceBlock(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel, ref string failureCode) {
             if (!base.CanPlaceBlock(world, byPlayer, blockSel, ref failureCode)) return false;
 
             BlockSelection bs = blockSel.Clone();
@@ -31,11 +27,9 @@ namespace AirThermoMod.Blocks
             return true;
         }
 
-        public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel)
-        {
+        public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel) {
             var be = GetBlockEntity<BEAirThermo>(blockSel.Position);
-            if (be != null)
-            {
+            if (be != null) {
                 return be.Interact(world, byPlayer);
             }
 

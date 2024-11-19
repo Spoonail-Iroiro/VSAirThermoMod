@@ -14,11 +14,9 @@ using Vintagestory.API.Server;
 using Vintagestory.Common;
 using Vintagestory.GameContent;
 
-namespace AirThermoMod.BlockEntities
-{
+namespace AirThermoMod.BlockEntities {
 
-    internal class BEAirThermo : BlockEntity
-    {
+    internal class BEAirThermo : BlockEntity {
         protected int intervalMinutes = 30;
 
         protected double totalHoursLastUpdate;
@@ -27,21 +25,18 @@ namespace AirThermoMod.BlockEntities
 
         protected TemperatureRecorder temperatureRecorder = new();
 
-        public override void Initialize(ICoreAPI api)
-        {
+        public override void Initialize(ICoreAPI api) {
             api.Logger.Event("Initializing AirThermo...");
             base.Initialize(api);
 
-            if (api is ICoreServerAPI)
-            {
+            if (api is ICoreServerAPI) {
                 // TODO: jitter
                 RegisterGameTickListener(Update, 3300);
             }
 
         }
 
-        private string getFormatedStatus()
-        {
+        private string getFormatedStatus() {
             StringBuilder sb = new();
             var calendar = Api.World.Calendar;
             sb.AppendLine($"Now: {calendar.PrettyDate()}");
@@ -54,10 +49,8 @@ namespace AirThermoMod.BlockEntities
         }
 
         // Update lastUpdateTotalHours and calculate nextUpdateRoundedTotalMinutes
-        protected void UpdateTimes(double totalHoursLastUpdate)
-        {
-            if (Api.Side == EnumAppSide.Server)
-            {
+        protected void UpdateTimes(double totalHoursLastUpdate) {
+            if (Api.Side == EnumAppSide.Server) {
                 this.totalHoursLastUpdate = totalHoursLastUpdate;
 
                 nextUpdateRoundedTotalMinutes = NextUpdateRoundedTotalMinutes(Api.World.Calendar.HoursPerDay, totalHoursLastUpdate, intervalMinutes);
@@ -66,23 +59,19 @@ namespace AirThermoMod.BlockEntities
             }
         }
 
-        public void OnBlockPlaced()
-        {
+        public void OnBlockPlaced() {
             UpdateTimes(Api.World.Calendar.TotalHours);
         }
 
-        public bool Interact(IWorldAccessor world, IPlayer byPlayer)
-        {
+        public bool Interact(IWorldAccessor world, IPlayer byPlayer) {
             Api.Logger.Event("Interacting...");
             var calendar = Api.World.Calendar;
-            if (Api.Side == EnumAppSide.Client)
-            {
+            if (Api.Side == EnumAppSide.Client) {
                 Api.Logger.Event("[Client]" + getFormatedStatus());
             }
 
             IServerPlayer splr = byPlayer as IServerPlayer;
-            if (splr != null)
-            {
+            if (splr != null) {
                 var conds = world.BlockAccessor.GetClimateAt(Pos, EnumGetClimateMode.NowValues);
                 var temperature = conds == null ? 0 : conds.Temperature;
                 var time = TimeUtil.ToRoundedTotalMinutesN(calendar.TotalHours);
@@ -94,20 +83,17 @@ namespace AirThermoMod.BlockEntities
             return true;
         }
 
-        protected void SampleTemperaturePeriodical(double totalHoursUntil)
-        {
+        protected void SampleTemperaturePeriodical(double totalHoursUntil) {
         }
 
 
 
 
-        public void Update(float dt)
-        {
+        public void Update(float dt) {
             if (!(Api as ICoreServerAPI).World.IsFullyLoadedChunk(Pos)) return;
 
         }
-        public static int NextUpdateRoundedTotalMinutes(float vsHourPerDay, double totalHours, int intervalMinutes)
-        {
+        public static int NextUpdateRoundedTotalMinutes(float vsHourPerDay, double totalHours, int intervalMinutes) {
             int minutesPerDay = TimeUtil.MinutesPerDay(vsHourPerDay);
 
             int totalMinutesN = TimeUtil.ToRoundedTotalMinutesN(totalHours);
@@ -122,13 +108,11 @@ namespace AirThermoMod.BlockEntities
             return nextTotalMinutesN;
         }
 
-        public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve)
-        {
+        public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve) {
             base.FromTreeAttributes(tree, worldAccessForResolve);
         }
 
-        public override void ToTreeAttributes(ITreeAttribute tree)
-        {
+        public override void ToTreeAttributes(ITreeAttribute tree) {
             base.ToTreeAttributes(tree);
         }
     }
