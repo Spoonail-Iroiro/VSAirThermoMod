@@ -4,7 +4,7 @@ using AirThermoMod.VS;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 
-namespace AirThermoMod.Test
+namespace AirThermoMod.Tests
 {
     [TestClass]
     public sealed class LearningTest
