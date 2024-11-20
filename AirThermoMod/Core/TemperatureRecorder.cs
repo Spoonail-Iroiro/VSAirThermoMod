@@ -20,8 +20,6 @@ namespace AirThermoMod.Core {
             TemperatureSamples = samples.ToList();
         }
 
-
-
         public void AddSample(TemperatureSample sample) {
             TemperatureSamples.Add(sample);
         }

@@ -33,34 +33,6 @@ namespace AirThermoMod.Core.Tests {
         }
 
         [TestMethod()]
-        public void GetSamplesAsSoATest() {
-            var recorder = new TemperatureRecorder();
-            recorder.SetSamples([new(60, 5.5), new(120, 7.5)]);
-            var soa = recorder.GetSamplesAsSoA();
-            soa.Item1.Should().Equal(
-                new int[] { 60, 120 }
-            );
-            soa.Item2.Should().Equal(
-                new double[] { 5.5, 7.5 }
-            );
-        }
-
-        [TestMethod()]
-        public void SetSamplesFromSoATest() {
-            var recorder = new TemperatureRecorder();
-            recorder.SetSamplesFromSoA(
-                new int[] { 30, 60, 90 },
-                new double[] { 5.5, 7.5, 9.5 }
-            );
-
-            recorder.TemperatureSamples.Should().Equal(new List<TemperatureSample> {
-                new(30, 5.5),
-                new(60, 7.5),
-                new(90, 9.5),
-            });
-        }
-
-        [TestMethod()]
         public void AddSampleTest() {
             var recorder = new TemperatureRecorder();
 
