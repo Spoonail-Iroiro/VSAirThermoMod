@@ -17,7 +17,7 @@ namespace AirThermoMod.VS {
 
         public static object DecodeGeneralObject(Type targetType, TreeAttribute attr) {
             if (targetType == typeof(TemperatureSample)) {
-                return new TemperatureSample { Time = attr.GetInt("time"), Temperature = attr.GetDouble("temperature") };
+                return new TemperatureSample(attr.GetInt("time"), attr.GetDouble("temperature"));
             }
             else {
                 throw new NotImplementedException();

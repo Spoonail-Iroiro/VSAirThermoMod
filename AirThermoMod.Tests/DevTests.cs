@@ -9,25 +9,9 @@ namespace AirThermoMod.Tests {
     [TestClass]
     public sealed class DevTests {
         [TestMethod]
-        public void TestMethod1() {
-            var rounded = TimeUtil.ToRoundedTotalMinutesN(1.0);
-            Assert.AreEqual(60, rounded);
-
-            var dt = new VSDateTime(9, 24.0f, TimeSpan.FromHours(1.0));
-            var d = GameMath.SmoothStep(0.5);
-            Console.WriteLine(d);
-        }
-
-        [TestMethod]
         public void SmoothStepTest() {
             var d = GameMath.SmoothStep(0.5);
             d.Should().Be(0.5);
-        }
-
-        [TestMethod]
-        public void TreeAttributeTest1() {
-            var ta = VSAttributeEncoder.Encode(new List<TemperatureSample> { new TemperatureSample { Time = 60, Temperature = 15 } });
-            Console.WriteLine($"{ta}");
         }
 
         [TestMethod]

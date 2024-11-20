@@ -21,7 +21,7 @@ namespace AirThermoMod.BlockEntities {
     internal class BEAirThermo : BlockEntity {
         protected int intervalMinute = 120;
 
-        protected double retentionPeriodYear = 1.0;
+        protected double retenionPeriodYear = 1.0;
 
         protected double totalHoursLastUpdate;
 
@@ -117,7 +117,7 @@ namespace AirThermoMod.BlockEntities {
             var currentTotalHours = Api.World.Calendar.TotalHours;
 
             // Allowed oldest sample and skip sampling older than this point
-            var minTotalHours = currentTotalHours - TimeUtil.TotalYearsToTotalHours(Api.World.Calendar, retentionPeriodYear);
+            var minTotalHours = currentTotalHours - TimeUtil.TotalYearsToTotalHours(Api.World.Calendar, retenionPeriodYear);
 
             // Skip sampling
             if (totalHoursNextUpdate < minTotalHours) {
@@ -133,7 +133,7 @@ namespace AirThermoMod.BlockEntities {
                 if (cond != null) {
                     var temperature = cond == null ? 0 : cond.Temperature;
                     var time = TimeUtil.ToRoundedTotalMinutesN(targetTotalHours);
-                    temperatureRecorder.AddSample(new TemperatureSample { Time = time, Temperature = temperature });
+                    temperatureRecorder.AddSample(new TemperatureSample(time, temperature));
                     isSampleAdded = true;
                 }
                 else {

@@ -20,7 +20,7 @@ namespace AirThermoMod.VS.Tests {
         [TestMethod()]
         public void DecodeToTemperatureSampleTest() {
             var decoded = VSAttributeDecoder.Decode<TemperatureSample>(new TreeAttribute { ["time"] = new IntAttribute(60), ["temperature"] = new DoubleAttribute(5.5) });
-            var expected = new TemperatureSample { Time = 60, Temperature = 5.5 };
+            var expected = new TemperatureSample(60, 5.5);
             decoded.Should().Be(expected: expected, comparer: compValueSame);
         }
 
@@ -33,8 +33,8 @@ namespace AirThermoMod.VS.Tests {
 
             var decoded = taattr.value.Select(attr => VSAttributeDecoder.Decode<TemperatureSample>(attr)).ToList();
             decoded.Should().Equal(new List<TemperatureSample> {
-                new() { Time = 60, Temperature = 5.5 },
-                new() { Time = 120, Temperature = 7.5 }
+                new(60, 5.5),
+                new(120, 7.5)
             }, compValueSame.Equals);
         }
     }
