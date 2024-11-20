@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 using Vintagestory.API.Util;
 
 namespace AirThermoMod.Core {
-    internal class TemperatureSample {
-        // rounded total minutes
-        public int Time { get; set; }
-        public double Temperature { get; set; }
-    }
+    internal record class TemperatureSample(int Time, double Temperature);
+    //    {
+    //    // rounded total minutes
+    //    public int Time { get; set; }
+    //    public double Temperature { get; set; }
+    //}
 
     internal class TemperatureRecorder {
         public List<TemperatureSample> TemperatureSamples { get; private set; } = new();
@@ -19,20 +20,7 @@ namespace AirThermoMod.Core {
             TemperatureSamples = samples.ToList();
         }
 
-        // array of structs -> struct of arrays
-        public Tuple<int[], double[]> GetSamplesAsSoA() {
-            var count = TemperatureSamples.Count;
 
-            var timeArr = new int[count];
-            var tempArr = new double[count];
-
-            for (var i = 0; i < count; ++i) {
-                timeArr[i] = TemperatureSamples[i].Time;
-                tempArr[i] = TemperatureSamples[i].Temperature;
-            }
-
-            return Tuple.Create(timeArr, tempArr);
-        }
 
         public void AddSample(TemperatureSample sample) {
             TemperatureSamples.Add(sample);
