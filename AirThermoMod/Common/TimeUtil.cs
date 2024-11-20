@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,13 @@ using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 
 namespace AirThermoMod.Common {
-    internal class VSDateTime {
+    public class VSTimeScale {
+        public int DaysPerMonth { get; set; }
+
+        public float HoursPerDay { get; set; }
+    }
+
+    public class VSDateTime {
         public int DaysPerMonth { get; private set; }
 
         public float HoursPerDay { get; private set; }
@@ -37,15 +44,74 @@ namespace AirThermoMod.Common {
 
         public EnumMonth MonthName => (EnumMonth)Month;
 
-        public VSDateTime(int vsDaysPerMonth, float vsHoursPerDay, TimeSpan timeSpan) {
+        public VSDateTime(VSTimeScale ts, TimeSpan timeSpan) {
             TimeSpan = timeSpan;
-            DaysPerMonth = vsDaysPerMonth;
-            HoursPerDay = vsHoursPerDay;
+            DaysPerMonth = ts.DaysPerMonth;
+            HoursPerDay = ts.HoursPerDay;
         }
 
-        public VSDateTime(IGameCalendar calendar, TimeSpan timeSpan) : this(calendar.DaysPerMonth, calendar.HoursPerDay, timeSpan) {
+        public VSDateTime(IGameCalendar calendar, TimeSpan timeSpan) : this(new VSTimeScale { DaysPerMonth = calendar.DaysPerMonth, HoursPerDay = calendar.HoursPerDay }, timeSpan) {
 
         }
+
+        public static VSDateTime FromDateTimeValue(
+            VSTimeScale ts,
+            int year = 0,
+            int month1 = 1,
+            int day1 = 1,
+            int hour = 0,
+            int minute = 0,
+            int second = 0
+        ) {
+            int month0 = month1 - 1;
+            int day0 = day1 - 1;
+
+            double totalSeconds = 0;
+            totalSeconds += second;
+            totalSeconds += minute * 60;
+            totalSeconds += hour * 60 * 60;
+            totalSeconds += day0 * 60 * 60 * ts.HoursPerDay;
+            totalSeconds += month0 * 60 * 60 * ts.HoursPerDay * ts.DaysPerMonth;
+            totalSeconds += year * 60 * 60 * ts.HoursPerDay * ts.DaysPerMonth * 12;
+
+            return new VSDateTime(ts, TimeSpan.FromSeconds(totalSeconds));
+        }
+
+        public static VSDateTime FromDateTimeValue(
+            IGameCalendar calendar,
+            int year = 0,
+            int month1 = 1,
+            int day1 = 1,
+            int hour = 0,
+            int minute = 0,
+            int second = 0
+        ) {
+            var ts = new VSTimeScale {
+                DaysPerMonth = calendar.DaysPerMonth,
+                HoursPerDay = calendar.HoursPerDay
+            };
+
+            return FromDateTimeValue(
+                ts,
+                year,
+                month1,
+                day1,
+                hour,
+                minute,
+                second
+            );
+        }
+
+        public static VSDateTime FromYearRel(VSTimeScale ts, double yearRel) {
+            double totalHours = 1.0 * ts.HoursPerDay * ts.DaysPerMonth * 12.0 * yearRel;
+
+            return new VSDateTime(ts, TimeSpan.FromHours(totalHours));
+        }
+
+        public static VSDateTime FromYearRel(IGameCalendar calendar, double yearRel) {
+            return FromYearRel(new VSTimeScale { DaysPerMonth = calendar.DaysPerMonth, HoursPerDay = calendar.HoursPerDay }, yearRel);
+        }
+
 
         public string PrettyDate() {
             return Lang.Get("dateformat", Day, Lang.Get("month-" + MonthName), Year.ToString("0"), Hour.ToString("00"), Minute.ToString("00"));
@@ -71,6 +137,12 @@ namespace AirThermoMod.Common {
 
         public static double RoundedTotalMinutesToTotalHours(int totalMinutesN) {
             return 1.0 * totalMinutesN / MINUTES_PER_HOUR;
+        }
+
+        public static double TotalYearsToTotalHours(IGameCalendar calendar, double totalYears) {
+            var dt = VSDateTime.FromYearRel(calendar, totalYears);
+
+            return dt.TimeSpan.TotalHours;
         }
 
 

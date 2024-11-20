@@ -19,6 +19,21 @@ namespace AirThermoMod.Core {
             TemperatureSamples = samples.ToList();
         }
 
+        // array of structs -> struct of arrays
+        public Tuple<int[], double[]> GetSamplesAsSoA() {
+            var count = TemperatureSamples.Count;
+
+            var timeArr = new int[count];
+            var tempArr = new double[count];
+
+            for (var i = 0; i < count; ++i) {
+                timeArr[i] = TemperatureSamples[i].Time;
+                tempArr[i] = TemperatureSamples[i].Temperature;
+            }
+
+            return Tuple.Create(timeArr, tempArr);
+        }
+
         public void AddSample(TemperatureSample sample) {
             TemperatureSamples.Add(sample);
         }
@@ -27,9 +42,17 @@ namespace AirThermoMod.Core {
             SetSamples(TemperatureSamples.Where(x => x.Time >= minTime));
         }
 
-        public string SimpleDescription() {
+        public string SimpleDescription(int sampleLimit = 30) {
             var sb = new StringBuilder();
-            TemperatureSamples.Select(sample => $"[{sample.Time / 60.0} hours, {sample.Temperature}]").Foreach(str => sb.Append(str));
+            if (TemperatureSamples.Count > sampleLimit) {
+                sb.AppendLine($"Oh there're too many samples, more than {sampleLimit}");
+                sb.AppendLine($"We have {TemperatureSamples.Count} samples");
+                sb.AppendLine($"The first is [{TemperatureSamples[0].Time / 60.0} hours, {TemperatureSamples[0].Temperature}]");
+                sb.AppendLine($"The last is [{TemperatureSamples[TemperatureSamples.Count - 1].Time / 60.0} hours, {TemperatureSamples[TemperatureSamples.Count - 1].Temperature}]");
+            }
+            else {
+                TemperatureSamples.Select(sample => $"[{sample.Time / 60.0} hours, {sample.Temperature}]").Foreach(str => sb.Append(str));
+            }
             return sb.ToString();
         }
     }
