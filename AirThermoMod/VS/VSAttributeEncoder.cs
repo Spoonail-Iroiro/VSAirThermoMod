@@ -27,7 +27,7 @@ namespace AirThermoMod.VS {
         }
 
 
-        public static IAttribute Encode(List<TemperatureSample> samples) {
+        public static IAttribute EncodeTemperatureSamples(List<TemperatureSample> samples) {
             var soa = ToTemperatureSamplesSoA(samples);
 
             var tree = new TreeAttribute {
