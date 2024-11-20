@@ -19,7 +19,9 @@ using Vintagestory.Server;
 namespace AirThermoMod.BlockEntities {
 
     internal class BEAirThermo : BlockEntity {
-        protected int intervalMinutes = 30;
+        protected int intervalMinute = 120;
+
+        protected double retentionPeriodYear = 1.0;
 
         protected double totalHoursLastUpdate;
 
@@ -55,7 +57,7 @@ namespace AirThermoMod.BlockEntities {
             if (Api.Side == EnumAppSide.Server) {
                 this.totalHoursLastUpdate = totalHoursLastUpdate;
 
-                var timeMinutes = NextUpdateRoundedTotalMinutes(Api.World.Calendar.HoursPerDay, totalHoursLastUpdate, intervalMinutes);
+                var timeMinutes = NextUpdateRoundedTotalMinutes(Api.World.Calendar.HoursPerDay, totalHoursLastUpdate, intervalMinute);
 
                 totalHoursNextUpdate = TimeUtil.RoundedTotalMinutesToTotalHours(timeMinutes);
 
@@ -78,7 +80,9 @@ namespace AirThermoMod.BlockEntities {
             if (splr != null) {
                 UpdateFromLastTime();
 
-                splr.SendMessage(GlobalConstants.InfoLogChatGroup, getFormattedStatus(), EnumChatType.Notification);
+                Api.Logger.Event("[Server]" + getFormattedStatus());
+
+                //splr.SendMessage(GlobalConstants.InfoLogChatGroup, getFormattedStatus(), EnumChatType.Notification);
             }
             return true;
         }
@@ -112,8 +116,17 @@ namespace AirThermoMod.BlockEntities {
 
             var currentTotalHours = Api.World.Calendar.TotalHours;
 
+            // Allowed oldest sample and skip sampling older than this point
+            var minTotalHours = currentTotalHours - TimeUtil.TotalYearsToTotalHours(Api.World.Calendar, retentionPeriodYear);
+
+            // Skip sampling
+            if (totalHoursNextUpdate < minTotalHours) {
+                UpdateTimes(minTotalHours);
+            }
+
             ClimateCondition cond = null;
-            // TODO: Don't update more than one year (or configured logging range) past
+            bool isSampleAdded = false;
+
             while (!(currentTotalHours < totalHoursNextUpdate)) {
                 var targetTotalHours = totalHoursNextUpdate;
                 cond = GetClimateConditionAtSpecificTime(Pos, targetTotalHours, cond);
@@ -121,6 +134,7 @@ namespace AirThermoMod.BlockEntities {
                     var temperature = cond == null ? 0 : cond.Temperature;
                     var time = TimeUtil.ToRoundedTotalMinutesN(targetTotalHours);
                     temperatureRecorder.AddSample(new TemperatureSample { Time = time, Temperature = temperature });
+                    isSampleAdded = true;
                 }
                 else {
                     var datetime = new VSDateTime(Api.World.Calendar, TimeSpan.FromHours(targetTotalHours));
@@ -133,6 +147,10 @@ namespace AirThermoMod.BlockEntities {
                 UpdateTimes(targetTotalHours);
 
                 MarkDirty();
+            }
+
+            if (isSampleAdded) {
+                temperatureRecorder.CleanUpSamplesByMinTime(TimeUtil.ToRoundedTotalMinutesN(minTotalHours));
             }
         }
 
