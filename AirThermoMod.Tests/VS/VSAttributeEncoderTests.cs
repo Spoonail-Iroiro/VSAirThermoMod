@@ -11,22 +11,6 @@ using System.Xml.Linq;
 using Vintagestory.API.Datastructures;
 
 namespace AirThermoMod.VS.Tests {
-    public class LambdaComparer<T> : IEqualityComparer<T> {
-        private readonly Func<T, T, bool> _comparer;
-
-        public LambdaComparer(Func<T, T, bool> comparer) {
-            _comparer = comparer;
-        }
-
-        public bool Equals(T x, T y) {
-            return _comparer(x, y);
-        }
-
-        public int GetHashCode(T obj) {
-            return obj.GetHashCode();
-        }
-    }
-
     [TestClass()]
     public class VSAttributeEncoderTests {
         private static IEnumerable<object[]> EncodeTestData {
