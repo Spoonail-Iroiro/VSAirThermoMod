@@ -13,15 +13,11 @@ namespace AirThermoMod.VS.Tests {
 
     [TestClass()]
     public class VSAttributeDecoderTests {
-
-        private static EqualityComparer<TemperatureSample> compValueSame = EqualityComparer<TemperatureSample>.Create((x, y) => x.Time == y.Time && x.Temperature == y.Temperature);
-
-
         [TestMethod()]
         public void DecodeToTemperatureSampleTest() {
             var decoded = VSAttributeDecoder.Decode<TemperatureSample>(new TreeAttribute { ["time"] = new IntAttribute(60), ["temperature"] = new DoubleAttribute(5.5) });
             var expected = new TemperatureSample(60, 5.5);
-            decoded.Should().Be(expected: expected, comparer: compValueSame);
+            decoded.Should().Be(expected: expected);
         }
 
         [TestMethod()]
@@ -35,7 +31,7 @@ namespace AirThermoMod.VS.Tests {
             decoded.Should().Equal(new List<TemperatureSample> {
                 new(60, 5.5),
                 new(120, 7.5)
-            }, compValueSame.Equals);
+            });
         }
     }
 }

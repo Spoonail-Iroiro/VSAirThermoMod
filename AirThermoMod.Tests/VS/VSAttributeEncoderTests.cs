@@ -17,11 +17,11 @@ namespace AirThermoMod.VS.Tests {
             get {
                 IEnumerable<object[]> hoge = new[]{
                     new object[] {
-                        new TemperatureSample (60, 5.5),
+                        new TemperatureSample(60, 5.5),
                         new TreeAttribute { ["time"] = new IntAttribute(60), ["temperature"] = new DoubleAttribute(5.5) }
                     },
                     new object[] {
-                        new List<TemperatureSample>() { new TemperatureSample (60, 5.5), new TemperatureSample (120, 7.5) },
+                        new List<TemperatureSample>() { new TemperatureSample(60, 5.5), new TemperatureSample(120, 7.5) },
                         new TreeArrayAttribute(new [] {
                             new TreeAttribute { ["time"] = new IntAttribute(60), ["temperature"] = new DoubleAttribute(5.5) },
                             new TreeAttribute { ["time"] = new IntAttribute(120), ["temperature"] = new DoubleAttribute(7.5) }
