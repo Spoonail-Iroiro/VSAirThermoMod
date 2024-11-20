@@ -23,6 +23,8 @@ namespace AirThermoMod.BlockEntities {
 
         protected double retenionPeriodYear = 1.0;
 
+        protected static Random rand = new();
+
         protected double totalHoursLastUpdate;
 
         protected double totalHoursNextUpdate;
@@ -35,7 +37,7 @@ namespace AirThermoMod.BlockEntities {
 
             if (api is ICoreServerAPI) {
                 // TODO: jitter
-                //RegisterGameTickListener(Update, 3300);
+                RegisterGameTickListener(Update, 3300 + rand.Next(500));
             }
 
         }
@@ -78,7 +80,6 @@ namespace AirThermoMod.BlockEntities {
 
             IServerPlayer splr = byPlayer as IServerPlayer;
             if (splr != null) {
-                UpdateFromLastTime();
 
                 Api.Logger.Event("[Server]" + getFormattedStatus());
 
@@ -109,6 +110,7 @@ namespace AirThermoMod.BlockEntities {
         }
 
         protected void Update(float dt) {
+            UpdateFromLastTime();
         }
 
         protected void UpdateFromLastTime() {
