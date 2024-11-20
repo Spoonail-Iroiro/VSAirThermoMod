@@ -19,7 +19,7 @@ using Vintagestory.Server;
 namespace AirThermoMod.BlockEntities {
 
     internal class BEAirThermo : BlockEntity {
-        protected int intervalMinute = 120;
+        protected int intervalMinute = 60;
 
         protected double retenionPeriodYear = 1.0;
 
@@ -174,8 +174,8 @@ namespace AirThermoMod.BlockEntities {
 
             totalHoursLastUpdate = tree.GetDouble("totalHoursLastUpdate");
             totalHoursNextUpdate = tree.GetDouble("totalHoursNextUpdate");
-            if (tree["temperatureSamples"] is TreeArrayAttribute samplesAttribute) {
-                var samplesDecoded = samplesAttribute.value.Select(attr => VSAttributeDecoder.Decode<TemperatureSample>(attr));
+            if (tree["temperatureSamples"] is TreeAttribute samplesAttribute) {
+                var samplesDecoded = VSAttributeDecoder.DecodeTemperatureSamples(samplesAttribute);
                 temperatureRecorder.SetSamples(samplesDecoded);
             }
         }
@@ -185,7 +185,7 @@ namespace AirThermoMod.BlockEntities {
 
             tree.SetDouble("totalHoursLastUpdate", totalHoursLastUpdate);
             tree.SetDouble("totalHoursNextUpdate", totalHoursNextUpdate);
-            var samplesAttribute = VSAttributeEncoder.Encode(temperatureRecorder.TemperatureSamples);
+            var samplesAttribute = VSAttributeEncoder.EncodeTemperatureSamples(temperatureRecorder.TemperatureSamples);
             tree["temperatureSamples"] = samplesAttribute;
         }
     }

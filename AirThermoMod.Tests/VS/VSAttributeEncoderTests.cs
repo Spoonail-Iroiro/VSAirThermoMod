@@ -13,30 +13,26 @@ using Vintagestory.API.Datastructures;
 namespace AirThermoMod.VS.Tests {
     [TestClass()]
     public class VSAttributeEncoderTests {
-        private static IEnumerable<object[]> EncodeTestData {
+        private static IEnumerable<object[]> EncodeTemperatureSamplesTestData {
             get {
                 IEnumerable<object[]> hoge = new[]{
                     new object[] {
-                        new TemperatureSample (60, 5.5),
-                        new TreeAttribute { ["time"] = new IntAttribute(60), ["temperature"] = new DoubleAttribute(5.5) }
-                    },
-                    new object[] {
-                        new List<TemperatureSample>() { new TemperatureSample (60, 5.5), new TemperatureSample (120, 7.5) },
-                        new TreeArrayAttribute(new [] {
-                            new TreeAttribute { ["time"] = new IntAttribute(60), ["temperature"] = new DoubleAttribute(5.5) },
-                            new TreeAttribute { ["time"] = new IntAttribute(120), ["temperature"] = new DoubleAttribute(7.5) }
-                        })
+                        new List<TemperatureSample>() { new TemperatureSample(60, 5.5), new TemperatureSample(120, 7.5) },
+                        new TreeAttribute {
+                            ["times"] = new IntArrayAttribute([60, 120]),
+                            ["temperatures"] = new DoubleArrayAttribute([5.5,7.5])
+                        }
                     }
                 };
                 return hoge;
             }
         }
 
-        [DynamicData(nameof(EncodeTestData))]
+        [DynamicData(nameof(EncodeTemperatureSamplesTestData))]
         [TestMethod()]
-        public void EncodeTest(object src, IAttribute expectedDst) {
+        public void EncodeTemperatureSamplesTest(object src, IAttribute expectedDst) {
             var comp = new VSAttributeSameValue();
-            var encoded = VSAttributeEncoder.Encode(src);
+            var encoded = VSAttributeEncoder.EncodeTemperatureSamples((List<TemperatureSample>)src);
             encoded.Should().Be(expectedDst, comp);
         }
     }

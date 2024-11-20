@@ -29,6 +29,7 @@ namespace AirThermoMod.VS.Tests {
                     [new StringAttribute("abc"), new StringAttribute("abc")],
                     [new TreeAttribute { ["att1"] = new IntAttribute(2) }, new TreeAttribute { ["att1"] = new IntAttribute(2) }],
                     [new IntArrayAttribute([1, 2, 3]), new IntArrayAttribute([1, 2, 3])],
+                    [new DoubleArrayAttribute([2.2, 4.4]), new DoubleArrayAttribute([2.2, 4.4])],
                     [new TreeArrayAttribute(treeArray1), new TreeArrayAttribute(treeArray2)]
                 ];
             }
@@ -71,6 +72,7 @@ namespace AirThermoMod.VS.Tests {
                     [new StringAttribute("abc"), new StringAttribute("ABc")],
                     [new TreeAttribute { ["att1"] = new IntAttribute(2) }, new TreeAttribute { ["att1"] = new IntAttribute(3) }],
                     [new IntArrayAttribute([1, 2, 3]), new IntArrayAttribute([1, 5, 3])],
+                    [new DoubleArrayAttribute([2.2, 4.4]), new DoubleArrayAttribute([2.2, 5.4])],
                     [new TreeArrayAttribute(treeArray1), new TreeArrayAttribute(treeArray2)],
                     [new TreeArrayAttribute(stTreeArray1), new TreeArrayAttribute(stTreeArray2)]
                 ];
