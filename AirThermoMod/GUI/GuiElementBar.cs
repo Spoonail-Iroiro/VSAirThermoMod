@@ -37,16 +37,14 @@ namespace AirThermoMod.GUI {
         void ComposeValue(Context ctx, ImageSurface surface) {
             Bounds.CalcWorldBounds();
 
-            double barValueLengthOuter = Bounds.OuterWidth * (barEnd - barStart);
-            double barValueXOuter = Bounds.bgDrawX + Bounds.OuterWidth * barStart;
+            double barValueLengthOuter = Bounds.InnerWidth * (barEnd - barStart);
+            double barValueXOuter = Bounds.drawX + Bounds.InnerWidth * barStart;
 
-            GuiElement.RoundRectangle(ctx, barValueXOuter, Bounds.bgDrawY, barValueLengthOuter, Bounds.OuterHeight, 1.0);
+            GuiElement.RoundRectangle(ctx, barValueXOuter, Bounds.drawY, barValueLengthOuter, Bounds.InnerHeight, 1.0);
             ctx.SetSourceRGB(color[0], color[1], color[2]);
             ctx.FillPreserve();
             ctx.SetSourceRGB(color[0] * 0.4, color[1] * 0.4, color[2] * 0.4);
             ctx.LineWidth = GuiElement.scaled(3.0);
-            // Skip drawing stroke, because we cannot use blur
-            //ctx.StrokePreserve();
 
             double barValueLengthInner = Bounds.InnerWidth * (barEnd - barStart);
             double barValueXInner = Bounds.drawX + Bounds.InnerWidth * barStart;
