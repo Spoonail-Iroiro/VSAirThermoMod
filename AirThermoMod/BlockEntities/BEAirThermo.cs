@@ -1,5 +1,6 @@
 ﻿using AirThermoMod.Common;
 using AirThermoMod.Core;
+using AirThermoMod.GUI;
 using AirThermoMod.VS;
 using System;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
@@ -30,6 +32,8 @@ namespace AirThermoMod.BlockEntities {
         protected double totalHoursNextUpdate;
 
         protected TemperatureRecorder temperatureRecorder = new();
+
+        GuiDialogBlockEntityAirThermo clientDialog;
 
         public override void Initialize(ICoreAPI api) {
             api.Logger.Event("Initializing AirThermo...");
@@ -71,6 +75,21 @@ namespace AirThermoMod.BlockEntities {
             UpdateTimes(Api.World.Calendar.TotalHours);
         }
 
+        protected void toggleGuiClient() {
+            if (Api is not ICoreClientAPI capi) return;
+
+            if (clientDialog == null) {
+                clientDialog = new GuiDialogBlockEntityAirThermo("Air Thermometer", Pos, capi);
+            }
+
+            if (clientDialog.IsOpened()) {
+                clientDialog.TryClose();
+            }
+            else {
+                clientDialog.TryOpen();
+            }
+        }
+
         public bool Interact(IWorldAccessor world, IPlayer byPlayer) {
             Api.Logger.Event("Interacting...");
             var calendar = Api.World.Calendar;
@@ -85,6 +104,8 @@ namespace AirThermoMod.BlockEntities {
 
                 //splr.SendMessage(GlobalConstants.InfoLogChatGroup, getFormattedStatus(), EnumChatType.Notification);
             }
+
+            toggleGuiClient();
             return true;
         }
 
@@ -121,13 +142,13 @@ namespace AirThermoMod.BlockEntities {
             // Allowed oldest sample and skip sampling older than this point
             var minTotalHours = currentTotalHours - TimeUtil.TotalYearsToTotalHours(Api.World.Calendar, retenionPeriodYear);
 
-            // Skip sampling
+            // Skip sampling before minTotalHours
             if (totalHoursNextUpdate < minTotalHours) {
                 UpdateTimes(minTotalHours);
             }
 
             ClimateCondition cond = null;
-            bool isSampleAdded = false;
+            bool hasUpdate = false;
 
             while (!(currentTotalHours < totalHoursNextUpdate)) {
                 var targetTotalHours = totalHoursNextUpdate;
@@ -136,7 +157,7 @@ namespace AirThermoMod.BlockEntities {
                     var temperature = cond == null ? 0 : cond.Temperature;
                     var time = TimeUtil.ToRoundedTotalMinutesN(targetTotalHours);
                     temperatureRecorder.AddSample(new TemperatureSample(time, temperature));
-                    isSampleAdded = true;
+                    hasUpdate = true;
                 }
                 else {
                     var datetime = new VSDateTime(Api.World.Calendar, TimeSpan.FromHours(targetTotalHours));
@@ -147,12 +168,11 @@ namespace AirThermoMod.BlockEntities {
 
                 // Calculates and sets new totalHoursNextUpdate
                 UpdateTimes(targetTotalHours);
-
-                MarkDirty();
             }
 
-            if (isSampleAdded) {
+            if (hasUpdate) {
                 temperatureRecorder.CleanUpSamplesByMinTime(TimeUtil.ToRoundedTotalMinutesN(minTotalHours));
+                MarkDirty();
             }
         }
 
@@ -190,5 +210,6 @@ namespace AirThermoMod.BlockEntities {
             var samplesAttribute = VSAttributeEncoder.EncodeTemperatureSamples(temperatureRecorder.TemperatureSamples);
             tree["temperatureSamples"] = samplesAttribute;
         }
+
     }
 }
