@@ -22,22 +22,28 @@ namespace AirThermoMod.GUI {
         void SetupDialog() {
             var dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
 
-            var bounds1 = ElementBounds.Fixed(0, 30, 100, 8);
-
-
             var bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
             bgBounds.BothSizing = ElementSizing.FitToChildren;
 
+            var bounds1 = ElementBounds.Fixed(0, 30, 100, 8).WithFixedPadding(3, 3);
+
             var tableBounds = ElementBounds.Fixed(0, 0, 100, 100);
-            tableBounds.FixedUnder(bounds1);
 
             ClearComposers();
             SingleComposer = capi.Gui.CreateCompo("blockentityairthermo" + BlockEntityPosition, dialogBounds)
                 .AddShadedDialogBG(bgBounds)
                 .AddDialogTitleBar("Air ThermoMeter", OnTitleBarClose)
-                .BeginChildElements(bgBounds)
-                    .AddStaticElement(new GuiElementBar(capi, 0.3, 0.8, bounds1, GuiStyle.FoodBarColor))
-                    .BeginChildElements(tableBounds);
+                .BeginChildElements(bgBounds);
+            //.AddStaticElement(new GuiElementBar(capi, 0.3, 0.8, bounds1, GuiStyle.FoodBarColor));
+
+            for (var i = 0; i < 10; i++) {
+                SingleComposer.AddStaticElement(new GuiElementBar(capi, 0.0, 0.1 * (i + 1), bounds1, GuiStyle.FoodBarColor));
+                bounds1 = bounds1.BelowCopy();
+            }
+
+            tableBounds.FixedUnder(bounds1);
+
+            SingleComposer.BeginChildElements(tableBounds);
             //.AddStaticText("Hello, GUI!", CairoFont.WhiteDetailText(), bounds1);
 
             string[][] testTable = new string[][] {
