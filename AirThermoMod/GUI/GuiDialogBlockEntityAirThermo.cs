@@ -9,6 +9,8 @@ using Vintagestory.Client.NoObf;
 using Vintagestory.GameContent;
 
 namespace AirThermoMod.GUI {
+    record class BarValue(double Start, double End);
+
     internal class GuiDialogBlockEntityAirThermo : GuiDialogBlockEntity {
         List<string> testTexts = new() { "1", "2", "3" };
         ElementBounds dynamicBounds;
@@ -28,6 +30,7 @@ namespace AirThermoMod.GUI {
             var bounds1 = ElementBounds.Fixed(0, 30, 100, 8).WithFixedPadding(3, 3);
 
             var tableBounds = ElementBounds.Fixed(0, 0, 100, 100);
+            tableBounds.BothSizing = ElementSizing.FitToChildren;
 
             ClearComposers();
             SingleComposer = capi.Gui.CreateCompo("blockentityairthermo" + BlockEntityPosition, dialogBounds)
@@ -46,21 +49,22 @@ namespace AirThermoMod.GUI {
             SingleComposer.BeginChildElements(tableBounds);
             //.AddStaticText("Hello, GUI!", CairoFont.WhiteDetailText(), bounds1);
 
-            string[][] testTable = new string[][] {
-                new[]{"ABC", "BCD", "CAB"},
-                new[]{"2", "3", "4"},
-                new[]{"3", "4", "5"},
+            var columnWidth = new int[] { 40, 40, 40, 300 };
+            var tableTitle = new string[] { "Date", "Min", "Max", "Bar" };
+            object[][] testTable = new object[][] {
+                new object[]{"ABC", "BCD", "CAB", new BarValue(0.2, 0.6)},
+                new object[]{"2", "3", "4", new BarValue(0, 0.3)},
+                new object[]{"3", "4", "5", new BarValue(0.4,0.6)},
             };
 
             AddTable(
                 SingleComposer,
-                tableBounds,
                 testTable,
                 0,
                 0,
-                new int[] { 40, 40, 40 },
+                columnWidth,
                 20,
-                new string[] { "col1", "col2", "col3" }
+                tableTitle
             );
 
             SingleComposer
@@ -78,8 +82,7 @@ namespace AirThermoMod.GUI {
             };
         }
 
-        void AddTable(GuiComposer composer, ElementBounds parentBound, string[][] tableSource, int x, int y, int[] columnWidth, int rowHeight, string[] columnTitles = null) {
-            var cellBounds = new ElementBounds[3];
+        void AddTable(GuiComposer composer, object[][] tableSource, int x, int y, int[] columnWidth, int rowHeight, string[] columnTitles = null) {
             var titleHeight = 24;
 
             if (columnTitles != null) {
@@ -92,7 +95,6 @@ namespace AirThermoMod.GUI {
                         titleCellBounds = titleCellBounds.RightCopy();
                     }
 
-                    parentBound.WithChild(titleCellBounds);
                     composer.AddStaticText(columnTitles[i], TableTitleText(), titleCellBounds);
                 }
 
@@ -100,26 +102,34 @@ namespace AirThermoMod.GUI {
                 y += titleHeight;
             }
 
+            if (tableSource.Length == 0) {
+                return;
+            }
+
+            int columnCount = tableSource[0].Length;
+
+            var cellBounds = new ElementBounds[columnCount];
+
             // Calculate initial ElementBounds for each column
             for (int i = 0; i < columnWidth.Length; ++i) {
-                if (i == 0) {
-                    cellBounds[i] = ElementBounds.Fixed(x, y, columnWidth[i], rowHeight);
-                }
-                else {
-                    cellBounds[i] = cellBounds[i - 1].RightCopy();
+                cellBounds[i] = ElementBounds.Fixed(x, y, columnWidth[i], rowHeight);
+                if (i != 0) {
+                    cellBounds[i].FixedRightOf(cellBounds[i - 1]);
+                    //cellBounds[i] = cellBounds[i - 1].RightCopy();
                 }
             }
 
-            int columnCount = 0;
             foreach (var row in tableSource) {
-                if (columnCount == 0) {
-                    columnCount = row.Length;
-                    if (columnWidth.Length < columnCount) throw new ArgumentException($"tableSource has {columnCount} columns, but only {columnWidth.Length} columnWidth specified");
-                }
-
                 for (int i = 0; i < columnCount; i++) {
-                    parentBound.WithChild(cellBounds[i]);
-                    composer.AddStaticText(row[i], CairoFont.WhiteDetailText(), cellBounds[i]);
+                    if (row[i] is string content) {
+                        composer.AddStaticText(content, CairoFont.WhiteDetailText(), cellBounds[i]);
+                    }
+                    else if (row[i] is BarValue bv) {
+                        composer.AddStaticElement(new GuiElementBar(capi, bv.Start, bv.End, cellBounds[i], GuiStyle.FoodBarColor));
+                    }
+                    else {
+                        throw new Exception($"Unsupported table content");
+                    }
                     cellBounds[i] = cellBounds[i].BelowCopy();
                 }
             }
