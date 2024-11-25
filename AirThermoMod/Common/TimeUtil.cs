@@ -2,11 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
+using Vintagestory.Common;
 
 namespace AirThermoMod.Common {
     public class VSTimeScale {
@@ -30,7 +33,8 @@ namespace AirThermoMod.Common {
 
         public int Year => (int)(TotalDays / DaysPerYear);
 
-        public int Month => (int)Math.Ceiling(YearRel * MonthsPerYear);
+        //public int Month => (int)Math.Ceiling(YearRel * MonthsPerYear);
+        public int Month => (int)Math.Floor(YearRel * MonthsPerYear) + 1;
 
         public int Day => (int)(TotalDays % DaysPerMonth) + 1;
 
@@ -112,11 +116,43 @@ namespace AirThermoMod.Common {
             return FromYearRel(new VSTimeScale { DaysPerMonth = calendar.DaysPerMonth, HoursPerDay = calendar.HoursPerDay }, yearRel);
         }
 
+        public static VSDateTime FromTotalDays(VSTimeScale ts, double totalDays) {
+            var totalHours = 1.0 * totalDays * ts.HoursPerDay;
+            return new VSDateTime(ts, TimeSpan.FromHours(totalHours));
+        }
+
 
         public string PrettyDate() {
             return Lang.Get("dateformat", Day, Lang.Get("month-" + MonthName), Year.ToString("0"), Hour.ToString("00"), Minute.ToString("00"));
         }
 
+        public override bool Equals(object obj) => this.Equals(obj as VSDateTime);
+
+        public bool Equals(VSDateTime other) {
+            if (other is null) return false;
+
+            if (Object.ReferenceEquals(this, other)) return true;
+
+            if (this.GetType() != other.GetType()) return false;
+
+            return this.DaysPerMonth == other.DaysPerMonth && this.HoursPerDay == other.HoursPerDay && this.TimeSpan == other.TimeSpan;
+        }
+
+        public override int GetHashCode() => (DaysPerMonth, HoursPerDay, TimeSpan).GetHashCode();
+
+        public static bool operator ==(VSDateTime left, VSDateTime right) {
+            if (left is null) {
+                if (right is null) {
+                    return true;
+                }
+
+                return false;
+            }
+
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(VSDateTime left, VSDateTime right) => !(left == right);
     }
 
     internal class TimeUtil {
