@@ -8,8 +8,10 @@ using System.Threading.Tasks;
 using Vintagestory;
 using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 using Vintagestory.Client.NoObf;
 using Vintagestory.GameContent;
+using Vintagestory.Server;
 
 namespace AirThermoMod.GUI {
     record class BarValue(double Start, double End);
@@ -17,6 +19,8 @@ namespace AirThermoMod.GUI {
         List<string> testTexts = new() { "1", "2", "3" };
         ElementBounds dynamicBounds;
         double scrollBarContentFixedY;
+        string order = "desc";
+        List<TemperatureSample> currentSamples;
 
         public GuiDialogBlockEntityAirThermo(string dialogTitle, BlockPos blockEntityPos, ICoreClientAPI capi, List<TemperatureSample> samples) : base(dialogTitle, blockEntityPos, capi) {
             if (IsDuplicate) return;
@@ -25,13 +29,22 @@ namespace AirThermoMod.GUI {
         }
 
         public void SetupDialog(List<TemperatureSample> samples) {
+            currentSamples = samples;
+
             var dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
 
             var bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
             bgBounds.BothSizing = ElementSizing.FitToChildren;
             bgBounds.Name = "bg";
 
-            var clipBounds = ElementBounds.Fixed(0, GuiStyle.TitleBarHeight, 10, 480);
+            var controlAreaBounds = ElementBounds.Fixed(0, GuiStyle.TitleBarHeight, 10, 30).WithSizing(ElementSizing.FitToChildren, ElementSizing.FitToChildren);
+            bgBounds.WithChildren(controlAreaBounds);
+            var buttonBounds = ElementBounds.Fixed(0, 0, 90, 30);
+            controlAreaBounds.WithChildren(buttonBounds);
+            var reverseOrderButton = new GuiElementTextButton(capi, "Reverse order", CairoFont.ButtonText(), CairoFont.ButtonPressedText(), OnReverseOrderButtonClicked, buttonBounds);
+
+            var clipBounds = ElementBounds.Fixed(0, 0, 10, 400);
+            clipBounds.FixedUnder(controlAreaBounds, 10);
             clipBounds.horizontalSizing = ElementSizing.FitToChildren;
             clipBounds.Name = "clip";
 
@@ -53,6 +66,8 @@ namespace AirThermoMod.GUI {
                 .AddShadedDialogBG(bgBounds)
                 .AddDialogTitleBar("Air ThermoMeter", OnTitleBarClose)
                 .BeginChildElements(bgBounds)
+                    //.AddButton("Reverse order", () => { capi.World.Logger.Event("Click"); return true; }, buttonBounds)
+                    .AddInteractiveElement(reverseOrderButton)
                     .BeginClip(clipBounds)
                         .AddContainer(containerBounds, "scroll-content")
                     .EndClip()
@@ -62,9 +77,9 @@ namespace AirThermoMod.GUI {
             var statsCalc = new TemperatureStats(
                 new Common.VSTimeScale { DaysPerMonth = capi.World.Calendar.DaysPerMonth, HoursPerDay = capi.World.Calendar.HoursPerDay }
             );
-            var dailyMinAndMax = statsCalc.DailyMinAndMax(samples);
-            var allTimeMin = dailyMinAndMax.Min(stat => stat.Min);
-            var allTimeMax = dailyMinAndMax.Max(stat => stat.Max);
+            var dailyMinAndMax = statsCalc.DailyMinAndMax(samples, order);
+            double allTimeMin = dailyMinAndMax.Select(stat => (double?)stat.Min).DefaultIfEmpty(null).Min() ?? 0;
+            double allTimeMax = dailyMinAndMax.Select(stat => (double?)stat.Max).DefaultIfEmpty(null).Max() ?? 1;
             var table = dailyMinAndMax
                 .Select(stat => new object[] { TimeUtil.VSDateTimeToYearMonthDay(stat.DateTime), $"{stat.Min:F1}", $"{stat.Max:F1}", new BarValue(stat.RateMin, stat.RateMax) })
                 .ToArray();
@@ -202,6 +217,22 @@ namespace AirThermoMod.GUI {
             var scrollContent = SingleComposer.GetContainer("scroll-content");
             scrollContent.Bounds.fixedY = scrollBarContentFixedY - value;
             scrollContent.Bounds.CalcWorldBounds();
+        }
+
+        bool OnReverseOrderButtonClicked() {
+            if (order == "desc") {
+                order = "asc";
+            }
+            else if (order == "asc") {
+                order = "desc";
+            }
+            else {
+                new NotImplementedException();
+            }
+
+            SetupDialog(currentSamples);
+
+            return true;
         }
 
 
