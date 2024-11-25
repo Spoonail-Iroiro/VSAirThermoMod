@@ -75,7 +75,7 @@ namespace AirThermoMod.GUI {
             //    new object[]{"3", "4", "5", new BarValue(0.4,0.6)},
             //};
 
-            var columnWidth = new int[] { 160, 50, 50, 100 };
+            var columnWidth = new int[] { 150, 50, 50, 100 };
             var tableTitle = new string[] { "Date", "Min", "Max", "" };
 
             var container = SingleComposer.GetContainer("scroll-content");
@@ -126,6 +126,7 @@ namespace AirThermoMod.GUI {
             var containerBounds = ElementBounds.Fixed(0, 0, 1, 1).WithSizing(ElementSizing.FitToChildren);
             containerBounds.Name = $"table-{name}";
             var container = new GuiElementContainer(capi, containerBounds);
+            var fixedMargin = 10;
 
             var titleHeight = 24;
             var titleFont = TableTitleText();
@@ -136,10 +137,14 @@ namespace AirThermoMod.GUI {
                     var previous = titleCellBounds;
                     titleCellBounds = ElementBounds.Fixed(x, y, columnWidth[i], titleHeight);
                     if (i != 0) {
-                        titleCellBounds.FixedRightOf(previous);
+                        titleCellBounds.FixedRightOf(previous, fixedMargin);
                     }
 
-                    container.Add(new GuiElementStaticText(capi, columnTitles[i], titleFont.Orientation, titleCellBounds, titleFont));
+                    container.Bounds.WithChildren(titleCellBounds);
+                    var titleTextBounds = titleCellBounds.ForkContainingChild().WithAlignment(EnumDialogArea.CenterTop);
+                    var titleText = new GuiElementStaticText(capi, columnTitles[i], titleFont.Orientation, titleTextBounds, titleFont);
+                    titleText.AutoBoxSize();
+                    container.Add(titleText);
                 }
 
                 // Table content starts under title
@@ -158,7 +163,7 @@ namespace AirThermoMod.GUI {
             for (int i = 0; i < columnWidth.Length; ++i) {
                 cellBounds[i] = ElementBounds.Fixed(x, y, columnWidth[i], rowHeight);
                 if (i != 0) {
-                    cellBounds[i].FixedRightOf(cellBounds[i - 1]);
+                    cellBounds[i].FixedRightOf(cellBounds[i - 1], fixedMargin);
                     //cellBounds[i] = cellBounds[i - 1].RightCopy();
                 }
             }
@@ -169,7 +174,13 @@ namespace AirThermoMod.GUI {
                     if (row[i] is string content) {
                         // TODO: Specify format by args
                         var cellFont = i == 0 ? fixedCellFont.Clone() : fixedCellFont;
-                        var text = new GuiElementStaticText(capi, content, cellFont.Orientation, cellBounds[i], cellFont);
+                        container.Bounds.WithChild(cellBounds[i]);
+                        var textBounds = cellBounds[i].ForkContainingChild();
+                        var text = new GuiElementStaticText(capi, content, cellFont.Orientation, textBounds, cellFont);
+                        if (i == 1 || i == 2) {
+                            textBounds.Alignment = EnumDialogArea.RightTop;
+                            text.AutoBoxSize();
+                        }
                         container.Add(text);
                         // TODO: Specify format by args
                         if (i == 0) text.AutoFontSize();
