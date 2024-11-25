@@ -79,13 +79,14 @@ namespace AirThermoMod.BlockEntities {
             if (Api is not ICoreClientAPI capi) return;
 
             if (clientDialog == null) {
-                clientDialog = new GuiDialogBlockEntityAirThermo("Air Thermometer", Pos, capi);
+                clientDialog = new GuiDialogBlockEntityAirThermo("Air Thermometer", Pos, capi, temperatureRecorder.TemperatureSamples);
             }
 
             if (clientDialog.IsOpened()) {
                 clientDialog.TryClose();
             }
             else {
+                clientDialog.SetupDialog(temperatureRecorder.TemperatureSamples);
                 clientDialog.TryOpen();
             }
         }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AirThermoMod.Common;
+using AirThermoMod.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,18 +12,17 @@ using Vintagestory.GameContent;
 
 namespace AirThermoMod.GUI {
     record class BarValue(double Start, double End);
-
     internal class GuiDialogBlockEntityAirThermo : GuiDialogBlockEntity {
         List<string> testTexts = new() { "1", "2", "3" };
         ElementBounds dynamicBounds;
 
-        public GuiDialogBlockEntityAirThermo(string dialogTitle, BlockPos blockEntityPos, ICoreClientAPI capi) : base(dialogTitle, blockEntityPos, capi) {
+        public GuiDialogBlockEntityAirThermo(string dialogTitle, BlockPos blockEntityPos, ICoreClientAPI capi, List<TemperatureSample> samples) : base(dialogTitle, blockEntityPos, capi) {
             if (IsDuplicate) return;
 
-            SetupDialog();
+            SetupDialog(samples);
         }
 
-        void SetupDialog() {
+        public void SetupDialog(List<TemperatureSample> samples) {
             var dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
 
             var bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
@@ -39,27 +40,36 @@ namespace AirThermoMod.GUI {
                 .BeginChildElements(bgBounds);
             //.AddStaticElement(new GuiElementBar(capi, 0.3, 0.8, bounds1, GuiStyle.FoodBarColor));
 
-            for (var i = 0; i < 10; i++) {
-                SingleComposer.AddStaticElement(new GuiElementBar(capi, 0.0, 0.1 * (i + 1), bounds1, GuiStyle.FoodBarColor));
-                bounds1 = bounds1.BelowCopy();
-            }
+            //for (var i = 0; i < 10; i++) {
+            //    SingleComposer.AddStaticElement(new GuiElementBar(capi, 0.0, 0.1 * (i + 1), bounds1, GuiStyle.FoodBarColor));
+            //    bounds1 = bounds1.BelowCopy();
+            //}
 
             tableBounds.FixedUnder(bounds1);
 
             SingleComposer.BeginChildElements(tableBounds);
             //.AddStaticText("Hello, GUI!", CairoFont.WhiteDetailText(), bounds1);
 
-            var columnWidth = new int[] { 40, 40, 40, 300 };
+            var statsCalc = new TemperatureStats(
+                new Common.VSTimeScale { DaysPerMonth = capi.World.Calendar.DaysPerMonth, HoursPerDay = capi.World.Calendar.HoursPerDay }
+            );
+            var dailyMinAndMax = statsCalc.DailyMinAndMax(samples);
+            var table = dailyMinAndMax
+                .Select(stat => new object[] { stat.DateTime.PrettyDate(), $"{stat.Min:F1}", $"{stat.Max:F1}", new BarValue(stat.RateMin, stat.RateMax) })
+                .ToArray();
+
+            //object[][] table = new object[][] {
+            //    new object[]{"ABC", "BCD", "CAB", new BarValue(0.2, 0.6)},
+            //    new object[]{"2", "3", "4", new BarValue(0, 0.3)},
+            //    new object[]{"3", "4", "5", new BarValue(0.4,0.6)},
+            //};
+
+            var columnWidth = new int[] { 200, 40, 40, 100 };
             var tableTitle = new string[] { "Date", "Min", "Max", "Bar" };
-            object[][] testTable = new object[][] {
-                new object[]{"ABC", "BCD", "CAB", new BarValue(0.2, 0.6)},
-                new object[]{"2", "3", "4", new BarValue(0, 0.3)},
-                new object[]{"3", "4", "5", new BarValue(0.4,0.6)},
-            };
 
             AddTable(
                 SingleComposer,
-                testTable,
+                table,
                 0,
                 0,
                 columnWidth,
@@ -88,11 +98,10 @@ namespace AirThermoMod.GUI {
             if (columnTitles != null) {
                 ElementBounds titleCellBounds = null;
                 for (int i = 0; i < columnWidth.Length; ++i) {
-                    if (i == 0) {
-                        titleCellBounds = ElementBounds.Fixed(x, y, columnWidth[i], titleHeight);
-                    }
-                    else {
-                        titleCellBounds = titleCellBounds.RightCopy();
+                    var previous = titleCellBounds;
+                    titleCellBounds = ElementBounds.Fixed(x, y, columnWidth[i], titleHeight);
+                    if (i != 0) {
+                        titleCellBounds.FixedRightOf(previous);
                     }
 
                     composer.AddStaticText(columnTitles[i], TableTitleText(), titleCellBounds);
@@ -134,6 +143,22 @@ namespace AirThermoMod.GUI {
                 }
             }
         }
+
+        internal static object[][] DailyMinAndMaxToTable(IEnumerable<(VSDateTime dateTime, double min, double max)> dailyMinAndMax) {
+            var maxAllTime = dailyMinAndMax.Max(stat => stat.max);
+            var minAllTime = dailyMinAndMax.Min(stat => stat.min);
+            var rangeAllTime = maxAllTime - minAllTime;
+            if (rangeAllTime < 0.1) {
+                rangeAllTime = 0.1;
+            }
+
+            var table = dailyMinAndMax
+                .Select(stat => new object[] { stat.dateTime.PrettyDate(), $"{stat.min}", $"{stat.max}", new BarValue((stat.min - minAllTime) / rangeAllTime, (stat.max - minAllTime) / rangeAllTime) })
+                .ToArray();
+
+            return table;
+        }
+
 
         private void OnTitleBarClose() {
             TryClose();
