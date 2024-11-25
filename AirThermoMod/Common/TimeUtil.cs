@@ -181,6 +181,10 @@ namespace AirThermoMod.Common {
             return dt.TimeSpan.TotalHours;
         }
 
+        public static string VSDateTimeToYearMonthDay(VSDateTime dt) {
+            return Lang.Get("airthermomod:year-month-day", dt.Day, Lang.Get("month-" + dt.MonthName), dt.Year.ToString("0"));
+        }
+
 
     }
 }

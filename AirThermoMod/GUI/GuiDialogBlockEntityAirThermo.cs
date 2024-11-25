@@ -65,7 +65,7 @@ namespace AirThermoMod.GUI {
             );
             var dailyMinAndMax = statsCalc.DailyMinAndMax(samples);
             var table = dailyMinAndMax
-                .Select(stat => new object[] { stat.DateTime.PrettyDate(), $"{stat.Min:F1}", $"{stat.Max:F1}", new BarValue(stat.RateMin, stat.RateMax) })
+                .Select(stat => new object[] { TimeUtil.VSDateTimeToYearMonthDay(stat.DateTime), $"{stat.Min:F1}", $"{stat.Max:F1}", new BarValue(stat.RateMin, stat.RateMax) })
                 .ToArray();
 
             //object[][] table = new object[][] {
@@ -156,21 +156,6 @@ namespace AirThermoMod.GUI {
                     cellBounds[i] = cellBounds[i].BelowCopy();
                 }
             }
-        }
-
-        internal static object[][] DailyMinAndMaxToTable(IEnumerable<(VSDateTime dateTime, double min, double max)> dailyMinAndMax) {
-            var maxAllTime = dailyMinAndMax.Max(stat => stat.max);
-            var minAllTime = dailyMinAndMax.Min(stat => stat.min);
-            var rangeAllTime = maxAllTime - minAllTime;
-            if (rangeAllTime < 0.1) {
-                rangeAllTime = 0.1;
-            }
-
-            var table = dailyMinAndMax
-                .Select(stat => new object[] { stat.dateTime.PrettyDate(), $"{stat.min}", $"{stat.max}", new BarValue((stat.min - minAllTime) / rangeAllTime, (stat.max - minAllTime) / rangeAllTime) })
-                .ToArray();
-
-            return table;
         }
 
         new void OnNewScrollbarvalue(float value) {
