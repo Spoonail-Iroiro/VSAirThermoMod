@@ -56,14 +56,15 @@ namespace AirThermoMod.GUI {
                     .BeginClip(clipBounds)
                         .AddContainer(containerBounds, "scroll-content")
                     .EndClip()
-                    .AddVerticalScrollbar(OnNewScrollbarvalue, scrollBarBounds, "scroll-bar")
-                .EndChildElements();
+                    .AddVerticalScrollbar(OnNewScrollbarvalue, scrollBarBounds, "scroll-bar");
 
 
             var statsCalc = new TemperatureStats(
                 new Common.VSTimeScale { DaysPerMonth = capi.World.Calendar.DaysPerMonth, HoursPerDay = capi.World.Calendar.HoursPerDay }
             );
             var dailyMinAndMax = statsCalc.DailyMinAndMax(samples);
+            var allTimeMin = dailyMinAndMax.Min(stat => stat.Min);
+            var allTimeMax = dailyMinAndMax.Max(stat => stat.Max);
             var table = dailyMinAndMax
                 .Select(stat => new object[] { TimeUtil.VSDateTimeToYearMonthDay(stat.DateTime), $"{stat.Min:F1}", $"{stat.Max:F1}", new BarValue(stat.RateMin, stat.RateMax) })
                 .ToArray();
@@ -74,13 +75,13 @@ namespace AirThermoMod.GUI {
             //    new object[]{"3", "4", "5", new BarValue(0.4,0.6)},
             //};
 
-            var columnWidth = new int[] { 200, 40, 40, 100 };
-            var tableTitle = new string[] { "Date", "Min", "Max", "Bar" };
+            var columnWidth = new int[] { 160, 50, 50, 100 };
+            var tableTitle = new string[] { "Date", "Min", "Max", "" };
 
             var container = SingleComposer.GetContainer("scroll-content");
 
-            AddTable(
-                container,
+            var tableControl = CreateTable(
+                "main",
                 table,
                 0,
                 0,
@@ -89,7 +90,24 @@ namespace AirThermoMod.GUI {
                 tableTitle
             );
 
+            container.Add(tableControl);
+
+            var minAndMaxBounds = ElementBounds.Fixed(0, 0, columnWidth[columnWidth.Length - 1], 20);
+            container.Bounds.WithChild(minAndMaxBounds);
+            minAndMaxBounds.RightOf(tableControl.Bounds, -columnWidth[columnWidth.Length - 1]);
+
+            var minAndMaxFont = CairoFont.WhiteDetailText();
+            var minBound = minAndMaxBounds.ForkContainingChild().WithAlignment(EnumDialogArea.LeftMiddle);
+            var maxBound = minAndMaxBounds.ForkContainingChild().WithAlignment(EnumDialogArea.RightMiddle);
+            var minText = new GuiElementStaticText(capi, $"{allTimeMin:F1}", minAndMaxFont.Orientation, minBound, minAndMaxFont);
+            container.Add(minText);
+            var maxText = new GuiElementStaticText(capi, $"{allTimeMax:F1}", minAndMaxFont.Orientation, maxBound, minAndMaxFont);
+            container.Add(maxText);
+            minText.AutoBoxSize();
+            maxText.AutoBoxSize();
+
             SingleComposer
+                .EndChildElements()
                 .Compose();
 
             SingleComposer.GetScrollbar("scroll-bar").SetHeights((float)scrollBarBounds.fixedHeight, (float)containerBounds.OuterHeight);
@@ -104,10 +122,13 @@ namespace AirThermoMod.GUI {
             };
         }
 
-        void AddTable(GuiElementContainer container, object[][] tableSource, int x, int y, int[] columnWidth, int rowHeight, string[] columnTitles = null) {
+        GuiElementContainer CreateTable(string name, object[][] tableSource, int x, int y, int[] columnWidth, int rowHeight, string[] columnTitles = null) {
+            var containerBounds = ElementBounds.Fixed(0, 0, 1, 1).WithSizing(ElementSizing.FitToChildren);
+            containerBounds.Name = $"table-{name}";
+            var container = new GuiElementContainer(capi, containerBounds);
+
             var titleHeight = 24;
             var titleFont = TableTitleText();
-            var cellFont = CairoFont.WhiteDetailText();
 
             if (columnTitles != null) {
                 ElementBounds titleCellBounds = null;
@@ -126,7 +147,7 @@ namespace AirThermoMod.GUI {
             }
 
             if (tableSource.Length == 0) {
-                return;
+                return container;
             }
 
             int columnCount = tableSource[0].Length;
@@ -141,11 +162,17 @@ namespace AirThermoMod.GUI {
                     //cellBounds[i] = cellBounds[i - 1].RightCopy();
                 }
             }
+            var fixedCellFont = CairoFont.WhiteDetailText();
 
             foreach (var row in tableSource) {
                 for (int i = 0; i < columnCount; i++) {
                     if (row[i] is string content) {
-                        container.Add(new GuiElementStaticText(capi, content, cellFont.Orientation, cellBounds[i], cellFont));
+                        // TODO: Specify format by args
+                        var cellFont = i == 0 ? fixedCellFont.Clone() : fixedCellFont;
+                        var text = new GuiElementStaticText(capi, content, cellFont.Orientation, cellBounds[i], cellFont);
+                        container.Add(text);
+                        // TODO: Specify format by args
+                        if (i == 0) text.AutoFontSize();
                     }
                     else if (row[i] is BarValue bv) {
                         container.Add(new GuiElementBar(capi, bv.Start, bv.End, cellBounds[i], GuiStyle.FoodBarColor));
@@ -156,6 +183,8 @@ namespace AirThermoMod.GUI {
                     cellBounds[i] = cellBounds[i].BelowCopy();
                 }
             }
+
+            return container;
         }
 
         new void OnNewScrollbarvalue(float value) {
