@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Vintagestory;
 using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
 using Vintagestory.Client.NoObf;
@@ -15,6 +16,7 @@ namespace AirThermoMod.GUI {
     internal class GuiDialogBlockEntityAirThermo : GuiDialogBlockEntity {
         List<string> testTexts = new() { "1", "2", "3" };
         ElementBounds dynamicBounds;
+        double scrollBarContentFixedY;
 
         public GuiDialogBlockEntityAirThermo(string dialogTitle, BlockPos blockEntityPos, ICoreClientAPI capi, List<TemperatureSample> samples) : base(dialogTitle, blockEntityPos, capi) {
             if (IsDuplicate) return;
@@ -27,28 +29,36 @@ namespace AirThermoMod.GUI {
 
             var bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
             bgBounds.BothSizing = ElementSizing.FitToChildren;
+            bgBounds.Name = "bg";
 
-            var bounds1 = ElementBounds.Fixed(0, 30, 100, 8).WithFixedPadding(3, 3);
+            var clipBounds = ElementBounds.Fixed(0, GuiStyle.TitleBarHeight, 10, 480);
+            clipBounds.horizontalSizing = ElementSizing.FitToChildren;
+            clipBounds.Name = "clip";
 
-            var tableBounds = ElementBounds.Fixed(0, 0, 100, 100);
-            tableBounds.BothSizing = ElementSizing.FitToChildren;
+            var containerBounds = clipBounds.ForkContainingChild();
+            containerBounds.BothSizing = ElementSizing.FitToChildren;
+            containerBounds.Name = "container";
+            scrollBarContentFixedY = containerBounds.fixedY;
+
+            var scrollBarBounds = clipBounds.CopyOffsetedSibling()
+                .WithFixedWidth(20)
+                .WithSizing(ElementSizing.Fixed);
+            scrollBarBounds.RightOf(clipBounds, 3);
+
+            //var tableBounds = ElementBounds.Fixed(0, 0, 100, 100);
+            //tableBounds.BothSizing = ElementSizing.FitToChildren;
 
             ClearComposers();
             SingleComposer = capi.Gui.CreateCompo("blockentityairthermo" + BlockEntityPosition, dialogBounds)
                 .AddShadedDialogBG(bgBounds)
                 .AddDialogTitleBar("Air ThermoMeter", OnTitleBarClose)
-                .BeginChildElements(bgBounds);
-            //.AddStaticElement(new GuiElementBar(capi, 0.3, 0.8, bounds1, GuiStyle.FoodBarColor));
+                .BeginChildElements(bgBounds)
+                    .BeginClip(clipBounds)
+                        .AddContainer(containerBounds, "scroll-content")
+                    .EndClip()
+                    .AddVerticalScrollbar(OnNewScrollbarvalue, scrollBarBounds, "scroll-bar")
+                .EndChildElements();
 
-            //for (var i = 0; i < 10; i++) {
-            //    SingleComposer.AddStaticElement(new GuiElementBar(capi, 0.0, 0.1 * (i + 1), bounds1, GuiStyle.FoodBarColor));
-            //    bounds1 = bounds1.BelowCopy();
-            //}
-
-            tableBounds.FixedUnder(bounds1);
-
-            SingleComposer.BeginChildElements(tableBounds);
-            //.AddStaticText("Hello, GUI!", CairoFont.WhiteDetailText(), bounds1);
 
             var statsCalc = new TemperatureStats(
                 new Common.VSTimeScale { DaysPerMonth = capi.World.Calendar.DaysPerMonth, HoursPerDay = capi.World.Calendar.HoursPerDay }
@@ -67,8 +77,10 @@ namespace AirThermoMod.GUI {
             var columnWidth = new int[] { 200, 40, 40, 100 };
             var tableTitle = new string[] { "Date", "Min", "Max", "Bar" };
 
+            var container = SingleComposer.GetContainer("scroll-content");
+
             AddTable(
-                SingleComposer,
+                container,
                 table,
                 0,
                 0,
@@ -78,9 +90,9 @@ namespace AirThermoMod.GUI {
             );
 
             SingleComposer
-                    .EndChildElements()
-                .EndChildElements()
                 .Compose();
+
+            SingleComposer.GetScrollbar("scroll-bar").SetHeights((float)scrollBarBounds.fixedHeight, (float)containerBounds.OuterHeight);
         }
 
         CairoFont TableTitleText() {
@@ -92,8 +104,10 @@ namespace AirThermoMod.GUI {
             };
         }
 
-        void AddTable(GuiComposer composer, object[][] tableSource, int x, int y, int[] columnWidth, int rowHeight, string[] columnTitles = null) {
+        void AddTable(GuiElementContainer container, object[][] tableSource, int x, int y, int[] columnWidth, int rowHeight, string[] columnTitles = null) {
             var titleHeight = 24;
+            var titleFont = TableTitleText();
+            var cellFont = CairoFont.WhiteDetailText();
 
             if (columnTitles != null) {
                 ElementBounds titleCellBounds = null;
@@ -104,7 +118,7 @@ namespace AirThermoMod.GUI {
                         titleCellBounds.FixedRightOf(previous);
                     }
 
-                    composer.AddStaticText(columnTitles[i], TableTitleText(), titleCellBounds);
+                    container.Add(new GuiElementStaticText(capi, columnTitles[i], titleFont.Orientation, titleCellBounds, titleFont));
                 }
 
                 // Table content starts under title
@@ -131,10 +145,10 @@ namespace AirThermoMod.GUI {
             foreach (var row in tableSource) {
                 for (int i = 0; i < columnCount; i++) {
                     if (row[i] is string content) {
-                        composer.AddStaticText(content, CairoFont.WhiteDetailText(), cellBounds[i]);
+                        container.Add(new GuiElementStaticText(capi, content, cellFont.Orientation, cellBounds[i], cellFont));
                     }
                     else if (row[i] is BarValue bv) {
-                        composer.AddStaticElement(new GuiElementBar(capi, bv.Start, bv.End, cellBounds[i], GuiStyle.FoodBarColor));
+                        container.Add(new GuiElementBar(capi, bv.Start, bv.End, cellBounds[i], GuiStyle.FoodBarColor));
                     }
                     else {
                         throw new Exception($"Unsupported table content");
@@ -157,6 +171,12 @@ namespace AirThermoMod.GUI {
                 .ToArray();
 
             return table;
+        }
+
+        new void OnNewScrollbarvalue(float value) {
+            var scrollContent = SingleComposer.GetContainer("scroll-content");
+            scrollContent.Bounds.fixedY = scrollBarContentFixedY - value;
+            scrollContent.Bounds.CalcWorldBounds();
         }
 
 
