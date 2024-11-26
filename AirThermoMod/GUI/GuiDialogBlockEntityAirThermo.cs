@@ -16,21 +16,17 @@ using Vintagestory.Server;
 namespace AirThermoMod.GUI {
     record class BarValue(double Start, double End);
     internal class GuiDialogBlockEntityAirThermo : GuiDialogBlockEntity {
-        List<string> testTexts = new() { "1", "2", "3" };
-        ElementBounds dynamicBounds;
         double scrollBarContentFixedY;
-        string order = "desc";
-        List<TemperatureSample> currentSamples;
 
-        public GuiDialogBlockEntityAirThermo(string dialogTitle, BlockPos blockEntityPos, ICoreClientAPI capi, List<TemperatureSample> samples) : base(dialogTitle, blockEntityPos, capi) {
+        public Func<bool> ReverseOrderButtonClicked { get; set; }
+
+        public GuiDialogBlockEntityAirThermo(string dialogTitle, BlockPos blockEntityPos, ICoreClientAPI capi, List<TemperatureSample> samples, string order) : base(dialogTitle, blockEntityPos, capi) {
             if (IsDuplicate) return;
 
-            SetupDialog(samples);
+            SetupDialog(samples, order);
         }
 
-        public void SetupDialog(List<TemperatureSample> samples) {
-            currentSamples = samples;
-
+        public void SetupDialog(List<TemperatureSample> samples, string order) {
             var dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
 
             var bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
@@ -58,15 +54,11 @@ namespace AirThermoMod.GUI {
                 .WithSizing(ElementSizing.Fixed);
             scrollBarBounds.RightOf(clipBounds, 3);
 
-            //var tableBounds = ElementBounds.Fixed(0, 0, 100, 100);
-            //tableBounds.BothSizing = ElementSizing.FitToChildren;
-
             ClearComposers();
             SingleComposer = capi.Gui.CreateCompo("blockentityairthermo" + BlockEntityPosition, dialogBounds)
                 .AddShadedDialogBG(bgBounds)
-                .AddDialogTitleBar("Air ThermoMeter", OnTitleBarClose)
+                .AddDialogTitleBar(DialogTitle, OnTitleBarClose)
                 .BeginChildElements(bgBounds)
-                    //.AddButton("Reverse order", () => { capi.World.Logger.Event("Click"); return true; }, buttonBounds)
                     .AddInteractiveElement(reverseOrderButton)
                     .BeginClip(clipBounds)
                         .AddContainer(containerBounds, "scroll-content")
@@ -83,12 +75,6 @@ namespace AirThermoMod.GUI {
             var table = dailyMinAndMax
                 .Select(stat => new object[] { TimeUtil.VSDateTimeToYearMonthDay(stat.DateTime), $"{stat.Min:F1}", $"{stat.Max:F1}", new BarValue(stat.RateMin, stat.RateMax) })
                 .ToArray();
-
-            //object[][] table = new object[][] {
-            //    new object[]{"ABC", "BCD", "CAB", new BarValue(0.2, 0.6)},
-            //    new object[]{"2", "3", "4", new BarValue(0, 0.3)},
-            //    new object[]{"3", "4", "5", new BarValue(0.4,0.6)},
-            //};
 
             var columnWidth = new int[] { 150, 50, 50, 100 };
             var tableTitle = new string[] { "Date", "Min", "Max", "" };
@@ -220,19 +206,22 @@ namespace AirThermoMod.GUI {
         }
 
         bool OnReverseOrderButtonClicked() {
-            if (order == "desc") {
-                order = "asc";
-            }
-            else if (order == "asc") {
-                order = "desc";
-            }
-            else {
-                new NotImplementedException();
+            if (ReverseOrderButtonClicked == null) {
+                return true;
             }
 
-            SetupDialog(currentSamples);
+            return ReverseOrderButtonClicked();
+            //if (order == "desc") {
+            //    order = "asc";
+            //}
+            //else if (order == "asc") {
+            //    order = "desc";
+            //}
+            //else {
+            //    new NotImplementedException();
+            //}
 
-            return true;
+            //SetupDialog(currentSamples);
         }
 
 

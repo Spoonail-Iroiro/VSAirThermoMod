@@ -2,6 +2,7 @@
 using AirThermoMod.Core;
 using AirThermoMod.GUI;
 using AirThermoMod.VS;
+using ProtoBuf;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,16 +15,27 @@ using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
+using Vintagestory.API.Util;
 using Vintagestory.Common;
 using Vintagestory.GameContent;
 using Vintagestory.Server;
 
 namespace AirThermoMod.BlockEntities {
+    public enum AirThermoPacketId {
+        GuiSettingChanged = 891001,
+    }
+
+    [ProtoContract()]
+    record class BEAirThermoGuiSetting(
+        [property: ProtoMember(1)] string TableSortOrder
+    ) {
+        public BEAirThermoGuiSetting() : this("desc") { }
+    }
 
     internal class BEAirThermo : BlockEntity {
         protected int intervalMinute = 60;
 
-        protected double retenionPeriodYear = 1.0;
+        protected double retentionPeriodYear = 1.0;
 
         protected static Random rand = new();
 
@@ -35,15 +47,20 @@ namespace AirThermoMod.BlockEntities {
 
         GuiDialogBlockEntityAirThermo clientDialog;
 
+        BEAirThermoGuiSetting guiSetting = new BEAirThermoGuiSetting();
+
         public override void Initialize(ICoreAPI api) {
             api.Logger.Event("Initializing AirThermo...");
             base.Initialize(api);
 
-            if (api is ICoreServerAPI) {
-                // TODO: jitter
+            if (api is ICoreServerAPI sapi) {
                 RegisterGameTickListener(Update, 3300 + rand.Next(500));
-            }
 
+                var modSystem = sapi.ModLoader.GetModSystem<AirThermoModModSystem>();
+                if (modSystem != null) {
+                    intervalMinute = modSystem.Config.samplingIntervalMinutes;
+                }
+            }
         }
 
         private string getFormattedStatus() {
@@ -79,32 +96,21 @@ namespace AirThermoMod.BlockEntities {
             if (Api is not ICoreClientAPI capi) return;
 
             if (clientDialog == null) {
-                clientDialog = new GuiDialogBlockEntityAirThermo("Air Thermometer", Pos, capi, temperatureRecorder.TemperatureSamples);
+                clientDialog = new GuiDialogBlockEntityAirThermo("Air Thermometer", Pos, capi, temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
+                clientDialog.ReverseOrderButtonClicked = OnReverseOrderButtonClicked;
             }
 
             if (clientDialog.IsOpened()) {
                 clientDialog.TryClose();
             }
             else {
-                clientDialog.SetupDialog(temperatureRecorder.TemperatureSamples);
+                clientDialog.SetupDialog(temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
                 clientDialog.TryOpen();
             }
         }
 
         public bool Interact(IWorldAccessor world, IPlayer byPlayer) {
-            Api.Logger.Event("Interacting...");
             var calendar = Api.World.Calendar;
-            if (Api.Side == EnumAppSide.Client) {
-                Api.Logger.Event("[Client]" + getFormattedStatus());
-            }
-
-            IServerPlayer splr = byPlayer as IServerPlayer;
-            if (splr != null) {
-
-                Api.Logger.Event("[Server]" + getFormattedStatus());
-
-                //splr.SendMessage(GlobalConstants.InfoLogChatGroup, getFormattedStatus(), EnumChatType.Notification);
-            }
 
             toggleGuiClient();
             return true;
@@ -141,7 +147,7 @@ namespace AirThermoMod.BlockEntities {
             var currentTotalHours = Api.World.Calendar.TotalHours;
 
             // Allowed oldest sample and skip sampling older than this point
-            var minTotalHours = currentTotalHours - TimeUtil.TotalYearsToTotalHours(Api.World.Calendar, retenionPeriodYear);
+            var minTotalHours = currentTotalHours - TimeUtil.TotalYearsToTotalHours(Api.World.Calendar, retentionPeriodYear);
 
             // Skip sampling before minTotalHours
             if (totalHoursNextUpdate < minTotalHours) {
@@ -201,6 +207,10 @@ namespace AirThermoMod.BlockEntities {
                 var samplesDecoded = VSAttributeDecoder.DecodeTemperatureSamples(samplesAttribute);
                 temperatureRecorder.SetSamples(samplesDecoded);
             }
+            var guiSettingData = tree.GetBytes("guiSetting");
+            if (guiSettingData != null) {
+                guiSetting = SerializerUtil.Deserialize<BEAirThermoGuiSetting>(guiSettingData);
+            }
         }
 
         public override void ToTreeAttributes(ITreeAttribute tree) {
@@ -210,6 +220,47 @@ namespace AirThermoMod.BlockEntities {
             tree.SetDouble("totalHoursNextUpdate", totalHoursNextUpdate);
             var samplesAttribute = VSAttributeEncoder.EncodeTemperatureSamples(temperatureRecorder.TemperatureSamples);
             tree["temperatureSamples"] = samplesAttribute;
+            tree.SetBytes("guiSetting", SerializerUtil.Serialize(guiSetting));
+        }
+
+        bool OnReverseOrderButtonClicked() {
+            guiSetting = guiSetting with { TableSortOrder = (guiSetting.TableSortOrder == "asc" ? "desc" : "asc") };
+
+            if (Api is ICoreClientAPI capi) {
+                capi.Network.SendBlockEntityPacket(Pos, (int)AirThermoPacketId.GuiSettingChanged, guiSetting);
+            }
+
+            clientDialog?.SetupDialog(temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
+
+            return true;
+        }
+
+        public override void OnReceivedClientPacket(IPlayer fromPlayer, int packetid, byte[] data) {
+            base.OnReceivedClientPacket(fromPlayer, packetid, data);
+            if (packetid == (int)AirThermoPacketId.GuiSettingChanged) {
+                var received = SerializerUtil.Deserialize<BEAirThermoGuiSetting>(data);
+                guiSetting = received;
+                MarkDirty();
+            }
+        }
+
+        /// <summary>
+        /// Schedule sampling during the whole retention period.
+        /// </summary>
+        /// <remarks>
+        /// On next update, this air thermometer will sample all temperature as if 
+        /// it has been there since ([current datetime] - [retention period]) 
+        /// </remarks>
+        public void ScheduleForceSampleOverRetentionPeriod() {
+            if (Api.Side != EnumAppSide.Server) return;
+
+            var currentTotalHours = Api.World.Calendar.TotalHours;
+
+            // Allowed oldest sample and skip sampling older than this point
+            var retentionPeriodStart = currentTotalHours - TimeUtil.TotalYearsToTotalHours(Api.World.Calendar, retentionPeriodYear);
+            if (retentionPeriodStart < 0) retentionPeriodStart = 0;
+
+            UpdateTimes(retentionPeriodStart);
         }
 
     }
