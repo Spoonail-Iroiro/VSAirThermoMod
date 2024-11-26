@@ -1,6 +1,6 @@
 {
 	"editor": {
-		"collapsedPaths": "Root/StrainerBandBottom,Root/Vertical5,Root/StrainerStake10W3,Root/LegWLower,Root/Vertical1",
+		"collapsedPaths": "Root/VerticalS,Root/StrainerBandBottom,Root/Vertical5,Root/VerticalE,Root/VerticalW,Root/StrainerStake10W3,Root/LegWLower,Root/VerticalN,Root/Vertical1",
 		"allAngles": false,
 		"entityTextureMode": false
 	},
@@ -13,19 +13,36 @@
 	},
 	"elements": [
 		{
-			"name": "Beam",
-			"from": [ 0.0, 27.8, 0.5 ],
-			"to": [ 2.0, 43.8, 15.5 ],
-			"rotationOrigin": [ 0.0, 27.8, 0.5 ],
-			"rotationZ": -90.0,
+			"name": "Roof1",
+			"from": [ -2.0, 24.3, 0.0 ],
+			"to": [ 10.0, 25.8, 16.0 ],
+			"rotationOrigin": [ -2.0, 24.3, 0.0 ],
+			"rotationZ": 22.5,
 			"faces": {
-				"north": { "texture": "#baldcypress", "uv": [ 12.0, 0.0, 14.0, 16.0 ] },
-				"east": { "texture": "#baldcypress", "uv": [ 0.5, 0.0, 15.5, 16.0 ] },
-				"south": { "texture": "#baldcypress", "uv": [ 0.5, 0.0, 2.5, 16.0 ] },
-				"west": { "texture": "#baldcypress", "uv": [ 1.0, 0.0, 16.0, 16.0 ], "autoUv": false },
-				"up": { "texture": "#baldcypress", "uv": [ 10.5, 0.5, 12.5, 15.5 ] },
-				"down": { "texture": "#baldcypress", "uv": [ 3.0, 0.0, 5.0, 15.0 ] }
-			}
+				"north": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 12.0, 1.5 ] },
+				"east": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 16.0, 1.5 ] },
+				"south": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 12.0, 1.5 ] },
+				"west": { "texture": "#baldcypress", "uv": [ 0.5, 0.0, 15.5, 16.0 ], "autoUv": false },
+				"up": { "texture": "#baldcypress", "uv": [ 4.0, 0.0, 16.0, 16.0 ] },
+				"down": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 12.0, 16.0 ] }
+			},
+			"children": [
+				{
+					"name": "Roof3",
+					"from": [ 9.9829, 0.844, 0.0 ],
+					"to": [ 21.9829, 2.344, 16.0 ],
+					"rotationOrigin": [ 9.9829, 0.844, 0.0 ],
+					"rotationZ": -45.0,
+					"faces": {
+						"north": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 12.0, 1.5 ] },
+						"east": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 16.0, 1.5 ] },
+						"south": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 12.0, 1.5 ] },
+						"west": { "texture": "#baldcypress", "uv": [ 0.5, 0.0, 15.5, 16.0 ], "autoUv": false },
+						"up": { "texture": "#baldcypress", "uv": [ 4.0, 0.0, 16.0, 16.0 ] },
+						"down": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 12.0, 16.0 ] }
+					}
+				}
+			]
 		},
 		{
 			"name": "VerticalS",
@@ -161,7 +178,7 @@
 			]
 		},
 		{
-			"name": "LegELower2",
+			"name": "LegSE",
 			"from": [ 13.0, 0.0, 13.0 ],
 			"to": [ 15.0, 11.0, 15.0 ],
 			"rotationOrigin": [ 13.0, 0.0, 13.0 ],
@@ -175,7 +192,7 @@
 			}
 		},
 		{
-			"name": "LegELower3",
+			"name": "LegNE",
 			"from": [ 13.0, 0.0, 1.0 ],
 			"to": [ 15.0, 11.0, 3.0 ],
 			"rotationOrigin": [ 13.0, 0.0, 1.0 ],
@@ -189,7 +206,7 @@
 			}
 		},
 		{
-			"name": "LegELower4",
+			"name": "LegSW",
 			"from": [ 1.0, 0.0, 13.0 ],
 			"to": [ 3.0, 11.0, 15.0 ],
 			"rotationOrigin": [ 1.0, 0.0, 13.0 ],
@@ -203,7 +220,7 @@
 			}
 		},
 		{
-			"name": "LegELower5",
+			"name": "LegNW",
 			"from": [ 1.0, 0.0, 1.0 ],
 			"to": [ 3.0, 11.0, 3.0 ],
 			"rotationOrigin": [ 1.0, 0.0, 1.0 ],
@@ -619,7 +636,7 @@
 			]
 		},
 		{
-			"name": "TraySideS",
+			"name": "Bottom",
 			"from": [ 0.0, 11.0, 0.0 ],
 			"to": [ 16.0, 14.0, 16.0 ],
 			"rotationOrigin": [ 0.0, 11.0, 0.0 ],
