@@ -263,5 +263,13 @@ namespace AirThermoMod.BlockEntities {
             UpdateTimes(retentionPeriodStart);
         }
 
+
+        public override void OnBlockPlaced(ItemStack byItemStack = null) {
+            base.OnBlockPlaced(byItemStack);
+
+            clientDialog?.TryClose();
+            clientDialog?.Dispose();
+            clientDialog = null;
+        }
     }
 }
