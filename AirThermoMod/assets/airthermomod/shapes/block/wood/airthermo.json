@@ -1,6 +1,6 @@
 {
 	"editor": {
-		"collapsedPaths": "Root/VerticalS,Root/StrainerBandBottom,Root/Vertical5,Root/VerticalE,Root/StrainerStake10W3,Root/LegWLower,Root/VerticalN,Root/Vertical1",
+		"collapsedPaths": "Root/VerticalS,Root/StrainerBandBottom,Root/Vertical5,Root/VerticalE,Root/VerticalW,Root/StrainerStake10W3,Root/LegWLower,Root/VerticalN,Root/Vertical1",
 		"allAngles": false,
 		"entityTextureMode": false
 	},
@@ -9,6 +9,7 @@
 	"textureSizes": {
 	},
 	"textures": {
+		"themometer": "block/metal/themometer",
 		"baldcypress": "block/wood/whiteoak"
 	},
 	"elements": [
@@ -647,6 +648,20 @@
 				"west": { "texture": "#baldcypress", "uv": [ 2.5, 0.0, 5.5, 16.0 ], "rotation": 90 },
 				"up": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 16.0, 16.0 ], "rotation": 90 },
 				"down": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 16.0, 16.0 ], "rotation": 90 }
+			}
+		},
+		{
+			"name": "Thermo",
+			"from": [ 6.0, 15.0, 4.0 ],
+			"to": [ 7.0, 20.0, 5.0 ],
+			"rotationOrigin": [ 6.0, 15.0, 4.0 ],
+			"faces": {
+				"north": { "texture": "#themometer", "uv": [ 2.0, 0.0, 3.0, 5.0 ] },
+				"east": { "texture": "#themometer", "uv": [ 1.0, 0.0, 2.0, 5.0 ] },
+				"south": { "texture": "#themometer", "uv": [ 0.0, 0.0, 1.5, 8.0 ], "autoUv": false },
+				"west": { "texture": "#themometer", "uv": [ 3.0, 0.0, 4.0, 5.0 ] },
+				"up": { "texture": "#themometer", "uv": [ 0.0, 7.5, 1.0, 8.5 ] },
+				"down": { "texture": "#themometer", "uv": [ 0.0, 8.0, 1.0, 9.0 ] }
 			}
 		}
 	]}
