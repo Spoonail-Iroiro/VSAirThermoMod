@@ -53,7 +53,12 @@ namespace AirThermoMod {
         TextCommandResult CmdForceSampleAll(TextCommandCallingArgs args) {
             if (args.Caller.Player is IServerPlayer splr) {
                 var sel = splr.CurrentBlockSelection;
-                var beAirThermo = sapi.World.BlockAccessor.GetBlockEntity(sel.Position) as BEAirThermo;
+                var bePos = sel.Position;
+                var block = sapi.World.BlockAccessor.GetBlock(sel.Position);
+                if (block is BlockAirThermoUpper) {
+                    bePos = sel.Position.DownCopy();
+                }
+                var beAirThermo = sapi.World.BlockAccessor.GetBlockEntity(bePos) as BEAirThermo;
                 if (beAirThermo == null) {
                     return TextCommandResult.Error("Error: No air thermometers targeted");
                 }
