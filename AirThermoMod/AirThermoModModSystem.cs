@@ -18,6 +18,7 @@ namespace AirThermoMod {
         // Useful for registering block/entity classes on both sides
         public override void Start(ICoreAPI api) {
             api.RegisterBlockClass(Mod.Info.ModID + ".BlockAirThermo", typeof(BlockAirThermo));
+            api.RegisterBlockClass(Mod.Info.ModID + ".BlockAirThermoUpper", typeof(BlockAirThermoUpper));
             api.RegisterBlockEntityClass(Mod.Info.ModID + ".BEAirThermo", typeof(BEAirThermo));
         }
 
