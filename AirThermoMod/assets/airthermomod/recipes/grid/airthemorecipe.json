@@ -1,0 +1,24 @@
+{
+  "ingredientPattern": "_W_,SBS,S_S",
+  "width": 3,
+  "height": 3,
+  "ingredients": {
+    "W": {
+      "type": "block",
+      "code": "game:log-placed-*-ud"
+    },
+    "S": {
+      "type": "item",
+      "code": "game:stick"
+    },
+    "B": {
+      "type": "item",
+      "code": "game:metalbit-*"
+    }
+  },
+  "output": {
+    "type": "block",
+    "code": "airthermo-ns",
+    "quantity": 1
+  }
+}
