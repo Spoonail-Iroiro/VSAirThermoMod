@@ -5,39 +5,43 @@ using System.Text;
 using System.Threading.Tasks;
 using Vintagestory.API.Util;
 
-namespace AirThermoMod.Core
-{
-    internal class TemperatureSample
-    {
-        // rounded total minutes
-        public int Time { get; set; }
-        public double Temperature { get; set; }
-    }
+namespace AirThermoMod.Core {
+    internal record class TemperatureSample(int Time, double Temperature);
+    //    {
+    //    // rounded total minutes
+    //    public int Time { get; set; }
+    //    public double Temperature { get; set; }
+    //}
 
-    internal class TemperatureRecorder
-    {
+    internal class TemperatureRecorder {
         public List<TemperatureSample> TemperatureSamples { get; private set; } = new();
 
-        public void SetSamples(IEnumerable<TemperatureSample> samples)
-        {
+        public void SetSamples(IEnumerable<TemperatureSample> samples) {
             TemperatureSamples = samples.ToList();
         }
 
-        public void AddSample(TemperatureSample sample)
-        {
+        public void AddSample(TemperatureSample sample) {
             TemperatureSamples.Add(sample);
         }
 
-        public void CleanUpSamplesByMinTime(int minTime)
-        {
+        public void CleanUpSamplesByMinTime(int minTime) {
             SetSamples(TemperatureSamples.Where(x => x.Time >= minTime));
         }
 
-        public string SimpleDescription()
-        {
+        public string SimpleDescription(int sampleLimit = 30) {
             var sb = new StringBuilder();
-            TemperatureSamples.Select(sample => $"[{sample.Time / 60}, {sample.Temperature}]").Foreach(str => sb.AppendLine(str));
+            if (TemperatureSamples.Count > sampleLimit) {
+                sb.AppendLine($"Oh there're too many samples, more than {sampleLimit}");
+                sb.AppendLine($"We have {TemperatureSamples.Count} samples");
+                sb.AppendLine($"The first is [{TemperatureSamples[0].Time / 60.0} hours, {TemperatureSamples[0].Temperature}]");
+                sb.AppendLine($"The last is [{TemperatureSamples[TemperatureSamples.Count - 1].Time / 60.0} hours, {TemperatureSamples[TemperatureSamples.Count - 1].Temperature}]");
+            }
+            else {
+                TemperatureSamples.Select(sample => $"[{sample.Time / 60.0} hours, {sample.Temperature}]").Foreach(str => sb.Append(str));
+            }
             return sb.ToString();
         }
+
+
     }
 }

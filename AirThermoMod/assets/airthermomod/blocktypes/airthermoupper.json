@@ -1,7 +1,7 @@
 {
-  "code": "airthermo",
-  "class": "airthermomod.BlockAirThermo",
-  "entityclass": "airthermomod.BEAirThermo",
+  "code": "airthermoupper",
+  "class": "airthermomod.BlockAirThermoUpper",
+  "handbook": { "exclude": true },
   "variantgroups": [
     {
       "code": "orientation",
@@ -12,37 +12,14 @@
     }
   ],
   entityBehaviors: [ { name: "Animatable" } ],
-  "creativeinventory": {
-    "general": [
-      "airthermo-ns"
-    ]
-  },
   "behaviors": [
     {
       "name": "NWOrientable"
     }
   ],
-  "shapeInventory": {
-    "base": "block/wood/airthermo"
-  },
-  "shapebytype": {
-    "*-ns": {
-      "base": "block/wood/airthermo",
-      "rotateY": 0
-    },
-    "*-we": {
-      "base": "block/wood/airthermo",
-      "rotateY": 90
-    }
-  },
+  "shape": { "base": "game:block/basic/nothing" },
   "blockmaterial": "wood",
   "materialDensity": 450,
-  "textures": {
-    "wood": {
-      "base": "block/wood/whiteoak"
-    }
-  },
-  "faceCullMode": "NeverCull",
   "sidesolid": {
     "all": false
   },
@@ -60,14 +37,14 @@
   },
   selectionBoxes: [
     {
-      x1: 0,
-      y1: 0,
-      z1: 0,
-      x2: 1,
-      y2: 0.875,
-      z2: 1,
+      x1: 0.0441,
+      y1: -0.126,
+      z1: 0.063,
+      x2: 0.9559,
+      y2: 0.687,
+      z2: 0.937,
       rotateYByType: { "*-we": 90 }
-    },
+    }
   ],
   "collisionBoxes": [
     {
@@ -75,7 +52,7 @@
       "y1": 0,
       "z1": 0,
       "x2": 1,
-      "y2": 2,
+      "y2": 1,
       "z2": 1,
       rotateYByType: { "*-we": 90 }
     }

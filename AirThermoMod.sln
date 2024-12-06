@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35506.116 d17.12
+VisualStudioVersion = 17.12.35506.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AirThermoMod", "AirThermoMod\AirThermoMod.csproj", "{CFEAE95E-1C22-4F30-AE10-D8AE512DB772}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CakeBuild", "ZZCakeBuild\CakeBuild.csproj", "{4F10139D-FBD0-45F0-9F83-8F5B95FF39F1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AirThermoMod.Tests", "AirThermoMod.Tests\AirThermoMod.Tests.csproj", "{BD3DC954-F4C2-4A2C-BB4B-43E7C6757CF7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{4F10139D-FBD0-45F0-9F83-8F5B95FF39F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F10139D-FBD0-45F0-9F83-8F5B95FF39F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F10139D-FBD0-45F0-9F83-8F5B95FF39F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD3DC954-F4C2-4A2C-BB4B-43E7C6757CF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD3DC954-F4C2-4A2C-BB4B-43E7C6757CF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD3DC954-F4C2-4A2C-BB4B-43E7C6757CF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD3DC954-F4C2-4A2C-BB4B-43E7C6757CF7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
