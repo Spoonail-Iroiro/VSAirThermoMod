@@ -5,8 +5,8 @@
   "authors": [
     "Spoonail"
   ],
-  "description": "Air thrmometer",
-  "version": "0.1.0",
+  "description": "Thermometer",
+  "version": "0.1.1",
   "dependencies": {
     "game": ""
   }
