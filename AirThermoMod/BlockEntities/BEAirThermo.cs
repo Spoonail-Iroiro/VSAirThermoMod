@@ -88,10 +88,6 @@ namespace AirThermoMod.BlockEntities {
             }
         }
 
-        public void OnBlockPlaced() {
-            UpdateTimes(Api.World.Calendar.TotalHours);
-        }
-
         protected void toggleGuiClient() {
             if (Api is not ICoreClientAPI capi) return;
 
@@ -202,6 +198,7 @@ namespace AirThermoMod.BlockEntities {
             base.FromTreeAttributes(tree, worldAccessForResolve);
 
             totalHoursLastUpdate = tree.GetDouble("totalHoursLastUpdate");
+            Api?.Logger.Event($"FromTreeAttributes by AirThermo");
             totalHoursNextUpdate = tree.GetDouble("totalHoursNextUpdate");
             if (tree["temperatureSamples"] is TreeAttribute samplesAttribute) {
                 var samplesDecoded = VSAttributeDecoder.DecodeTemperatureSamples(samplesAttribute);
@@ -211,6 +208,8 @@ namespace AirThermoMod.BlockEntities {
             if (guiSettingData != null) {
                 guiSetting = SerializerUtil.Deserialize<BEAirThermoGuiSetting>(guiSettingData);
             }
+
+            Api?.Logger.Event($"FromTreeAttributes by AirThermo");
         }
 
         public override void ToTreeAttributes(ITreeAttribute tree) {
@@ -221,6 +220,8 @@ namespace AirThermoMod.BlockEntities {
             var samplesAttribute = VSAttributeEncoder.EncodeTemperatureSamples(temperatureRecorder.TemperatureSamples);
             tree["temperatureSamples"] = samplesAttribute;
             tree.SetBytes("guiSetting", SerializerUtil.Serialize(guiSetting));
+
+            Api?.Logger.Event($"ToTreeAttributes by AirThermo");
         }
 
         bool OnReverseOrderButtonClicked() {
@@ -267,9 +268,15 @@ namespace AirThermoMod.BlockEntities {
         public override void OnBlockPlaced(ItemStack byItemStack = null) {
             base.OnBlockPlaced(byItemStack);
 
-            clientDialog?.TryClose();
-            clientDialog?.Dispose();
-            clientDialog = null;
+            UpdateTimes(Api.World.Calendar.TotalHours);
         }
+
+        public override void OnBlockRemoved() {
+            base.OnBlockRemoved();
+
+            clientDialog?.TryClose();
+        }
+
+
     }
 }
