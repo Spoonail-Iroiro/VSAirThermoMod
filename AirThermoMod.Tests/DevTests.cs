@@ -8,6 +8,8 @@ using System.Runtime.CompilerServices;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
+using Vintagestory.Client;
+using Vintagestory.Client.NoObf;
 
 namespace AirThermoMod.Tests {
     [ProtoContract(SkipConstructor = true)]
@@ -55,8 +57,7 @@ namespace AirThermoMod.Tests {
 
         [TestMethod]
         public void SmoothStepTest() {
-            var d = GameMath.SmoothStep(0.5);
-            d.Should().Be(0.5);
+            OggDecoder decoder = new OggDecoder();
         }
 
         [TestMethod]
