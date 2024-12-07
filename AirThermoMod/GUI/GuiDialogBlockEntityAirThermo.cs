@@ -14,10 +14,22 @@ using Vintagestory.GameContent;
 using Vintagestory.Server;
 
 namespace AirThermoMod.GUI {
+    /// <summary>
+    /// Record for holding the start and end values for temperature bar 
+    /// </summary>
+    /// <param name="Start"></param>
+    /// <param name="End"></param>
     record class BarValue(double Start, double End);
+
+    /// <summary>
+    /// GUI dialog class opened on interacting with thermometer block
+    /// </summary>
     internal class GuiDialogBlockEntityAirThermo : GuiDialogBlockEntity {
         double scrollBarContentFixedY;
 
+        /// <summary>
+        /// Event triggered when 'Reverse Order' button is clicked
+        /// </summary>
         public Func<bool> ReverseOrderButtonClicked { get; set; }
 
         public GuiDialogBlockEntityAirThermo(string dialogTitle, BlockPos blockEntityPos, ICoreClientAPI capi, List<TemperatureSample> samples, string order) : base(dialogTitle, blockEntityPos, capi) {
@@ -33,12 +45,15 @@ namespace AirThermoMod.GUI {
             bgBounds.BothSizing = ElementSizing.FitToChildren;
             bgBounds.Name = "bg";
 
+            // Bounds for the control area (now contains only "Reverse Order" button).
             var controlAreaBounds = ElementBounds.Fixed(0, GuiStyle.TitleBarHeight, 10, 30).WithSizing(ElementSizing.FitToChildren, ElementSizing.FitToChildren);
             bgBounds.WithChildren(controlAreaBounds);
-            var buttonBounds = ElementBounds.Fixed(0, 0, 90, 30);
-            controlAreaBounds.WithChildren(buttonBounds);
-            var reverseOrderButton = new GuiElementTextButton(capi, "Reverse order", CairoFont.ButtonText(), CairoFont.ButtonPressedText(), OnReverseOrderButtonClicked, buttonBounds);
 
+            var reverseOrderbuttonBounds = ElementBounds.Fixed(0, 0, 90, 30);
+            controlAreaBounds.WithChildren(reverseOrderbuttonBounds);
+            var reverseOrderButton = new GuiElementTextButton(capi, "Reverse order", CairoFont.ButtonText(), CairoFont.ButtonPressedText(), OnReverseOrderButtonClicked, reverseOrderbuttonBounds);
+
+            // To use scrollbar, bounds for clipping is required
             var clipBounds = ElementBounds.Fixed(0, 0, 10, 400);
             clipBounds.FixedUnder(controlAreaBounds, 10);
             clipBounds.horizontalSizing = ElementSizing.FitToChildren;
@@ -66,21 +81,27 @@ namespace AirThermoMod.GUI {
                     .AddVerticalScrollbar(OnNewScrollbarvalue, scrollBarBounds, "scroll-bar");
 
 
+            // Initialize temperature stats calculator with world time scale
             var statsCalc = new TemperatureStats(
                 new Common.VSTimeScale { DaysPerMonth = capi.World.Calendar.DaysPerMonth, HoursPerDay = capi.World.Calendar.HoursPerDay }
             );
+            // Calculate daily min and max temperature
             var dailyMinAndMax = statsCalc.DailyMinAndMax(samples, order);
+            // Determine overall min and max temperatures to show above the temperature bars
             double allTimeMin = dailyMinAndMax.Select(stat => (double?)stat.Min).DefaultIfEmpty(null).Min() ?? 0;
             double allTimeMax = dailyMinAndMax.Select(stat => (double?)stat.Max).DefaultIfEmpty(null).Max() ?? 1;
+            // Prepare data for the table
             var table = dailyMinAndMax
                 .Select(stat => new object[] { TimeUtil.VSDateTimeToYearMonthDay(stat.DateTime), $"{stat.Min:F1}", $"{stat.Max:F1}", new BarValue(stat.RateMin, stat.RateMax) })
                 .ToArray();
 
+            // Some style settings
             var columnWidth = new int[] { 150, 50, 50, 100 };
             var tableTitle = new string[] { "Date", "Min", "Max", "" };
 
             var container = SingleComposer.GetContainer("scroll-content");
 
+            // Get table as container element
             var tableControl = CreateTable(
                 "main",
                 table,
@@ -93,10 +114,12 @@ namespace AirThermoMod.GUI {
 
             container.Add(tableControl);
 
+            // Min and max temperature over all time (above temperature bars)
+            //   Bounds
             var minAndMaxBounds = ElementBounds.Fixed(0, 0, columnWidth[columnWidth.Length - 1], 20);
             container.Bounds.WithChild(minAndMaxBounds);
             minAndMaxBounds.RightOf(tableControl.Bounds, -columnWidth[columnWidth.Length - 1]);
-
+            //   Content
             var minAndMaxFont = CairoFont.WhiteDetailText();
             var minBound = minAndMaxBounds.ForkContainingChild().WithAlignment(EnumDialogArea.LeftMiddle);
             var maxBound = minAndMaxBounds.ForkContainingChild().WithAlignment(EnumDialogArea.RightMiddle);
@@ -111,6 +134,7 @@ namespace AirThermoMod.GUI {
                 .EndChildElements()
                 .Compose();
 
+            // Scroll bar setting
             SingleComposer.GetScrollbar("scroll-bar").SetHeights((float)scrollBarBounds.fixedHeight, (float)containerBounds.OuterHeight);
         }
 
@@ -123,6 +147,18 @@ namespace AirThermoMod.GUI {
             };
         }
 
+        /// <summary>
+        /// Create table as container element
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="tableSource"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="columnWidth"></param>
+        /// <param name="rowHeight"></param>
+        /// <param name="columnTitles"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         GuiElementContainer CreateTable(string name, object[][] tableSource, int x, int y, int[] columnWidth, int rowHeight, string[] columnTitles = null) {
             var containerBounds = ElementBounds.Fixed(0, 0, 1, 1).WithSizing(ElementSizing.FitToChildren);
             containerBounds.Name = $"table-{name}";
@@ -211,20 +247,7 @@ namespace AirThermoMod.GUI {
             }
 
             return ReverseOrderButtonClicked();
-            //if (order == "desc") {
-            //    order = "asc";
-            //}
-            //else if (order == "asc") {
-            //    order = "desc";
-            //}
-            //else {
-            //    new NotImplementedException();
-            //}
-
-            //SetupDialog(currentSamples);
         }
-
-
         private void OnTitleBarClose() {
             TryClose();
         }

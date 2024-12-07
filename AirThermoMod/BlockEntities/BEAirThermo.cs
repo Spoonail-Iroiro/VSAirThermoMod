@@ -50,7 +50,6 @@ namespace AirThermoMod.BlockEntities {
         BEAirThermoGuiSetting guiSetting = new BEAirThermoGuiSetting();
 
         public override void Initialize(ICoreAPI api) {
-            api.Logger.Event("Initializing AirThermo...");
             base.Initialize(api);
 
             if (api is ICoreServerAPI sapi) {
@@ -61,18 +60,6 @@ namespace AirThermoMod.BlockEntities {
                     intervalMinute = modSystem.Config.samplingIntervalMinutes;
                 }
             }
-        }
-
-        private string getFormattedStatus() {
-            StringBuilder sb = new();
-            var calendar = Api.World.Calendar;
-            sb.AppendLine($"Now: {calendar.PrettyDate()}");
-            sb.AppendLine($"Last Update:{new VSDateTime(calendar, TimeSpan.FromHours(totalHoursLastUpdate)).PrettyDate()}");
-            var nextUpdateVSDateTime = new VSDateTime(calendar, TimeSpan.FromHours(totalHoursNextUpdate));
-            sb.AppendLine($"Next Update: {nextUpdateVSDateTime.PrettyDate()}");
-            sb.AppendLine($"Samples: {temperatureRecorder.SimpleDescription()}");
-
-            return sb.ToString();
         }
 
         // Update lastUpdateTotalHours and calculate nextUpdateRoundedTotalMinutes
@@ -110,9 +97,6 @@ namespace AirThermoMod.BlockEntities {
 
             toggleGuiClient();
             return true;
-        }
-
-        protected void SampleTemperaturePeriodical(double totalHoursUntil) {
         }
 
         private ClimateCondition GetClimateConditionAtSpecificTime(BlockPos pos, double totalHours, ClimateCondition previousCond = null) {
@@ -157,7 +141,7 @@ namespace AirThermoMod.BlockEntities {
                 var targetTotalHours = totalHoursNextUpdate;
                 cond = GetClimateConditionAtSpecificTime(Pos, targetTotalHours, cond);
                 if (cond != null) {
-                    var temperature = cond == null ? 0 : cond.Temperature;
+                    var temperature = cond.Temperature;
                     var time = TimeUtil.ToRoundedTotalMinutesN(targetTotalHours);
                     temperatureRecorder.AddSample(new TemperatureSample(time, temperature));
                     hasUpdate = true;
@@ -198,7 +182,6 @@ namespace AirThermoMod.BlockEntities {
             base.FromTreeAttributes(tree, worldAccessForResolve);
 
             totalHoursLastUpdate = tree.GetDouble("totalHoursLastUpdate");
-            Api?.Logger.Event($"FromTreeAttributes by AirThermo");
             totalHoursNextUpdate = tree.GetDouble("totalHoursNextUpdate");
             if (tree["temperatureSamples"] is TreeAttribute samplesAttribute) {
                 var samplesDecoded = VSAttributeDecoder.DecodeTemperatureSamples(samplesAttribute);
@@ -208,8 +191,6 @@ namespace AirThermoMod.BlockEntities {
             if (guiSettingData != null) {
                 guiSetting = SerializerUtil.Deserialize<BEAirThermoGuiSetting>(guiSettingData);
             }
-
-            Api?.Logger.Event($"FromTreeAttributes by AirThermo");
         }
 
         public override void ToTreeAttributes(ITreeAttribute tree) {
@@ -221,7 +202,6 @@ namespace AirThermoMod.BlockEntities {
             tree["temperatureSamples"] = samplesAttribute;
             tree.SetBytes("guiSetting", SerializerUtil.Serialize(guiSetting));
 
-            Api?.Logger.Event($"ToTreeAttributes by AirThermo");
         }
 
         bool OnReverseOrderButtonClicked() {
@@ -238,6 +218,7 @@ namespace AirThermoMod.BlockEntities {
 
         public override void OnReceivedClientPacket(IPlayer fromPlayer, int packetid, byte[] data) {
             base.OnReceivedClientPacket(fromPlayer, packetid, data);
+
             if (packetid == (int)AirThermoPacketId.GuiSettingChanged) {
                 var received = SerializerUtil.Deserialize<BEAirThermoGuiSetting>(data);
                 guiSetting = received;
@@ -257,13 +238,12 @@ namespace AirThermoMod.BlockEntities {
 
             var currentTotalHours = Api.World.Calendar.TotalHours;
 
-            // Allowed oldest sample and skip sampling older than this point
+            // Allowed oldest sample and sampling older than this point will be skipped
             var retentionPeriodStart = currentTotalHours - TimeUtil.TotalYearsToTotalHours(Api.World.Calendar, retentionPeriodYear);
             if (retentionPeriodStart < 0) retentionPeriodStart = 0;
 
             UpdateTimes(retentionPeriodStart);
         }
-
 
         public override void OnBlockPlaced(ItemStack byItemStack = null) {
             base.OnBlockPlaced(byItemStack);
@@ -276,7 +256,6 @@ namespace AirThermoMod.BlockEntities {
 
             clientDialog?.TryClose();
         }
-
 
     }
 }
