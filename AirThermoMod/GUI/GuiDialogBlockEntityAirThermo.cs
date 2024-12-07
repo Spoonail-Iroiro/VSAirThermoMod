@@ -88,8 +88,8 @@ namespace AirThermoMod.GUI {
             // Calculate daily min and max temperature
             var dailyMinAndMax = statsCalc.DailyMinAndMax(samples, order);
             // Determine overall min and max temperatures to show above the temperature bars
-            double allTimeMin = dailyMinAndMax.Select(stat => (double?)stat.Min).DefaultIfEmpty(null).Min() ?? 0;
-            double allTimeMax = dailyMinAndMax.Select(stat => (double?)stat.Max).DefaultIfEmpty(null).Max() ?? 1;
+            double allTimeMin = dailyMinAndMax.Select(stat => (double?)stat.Min).Min() ?? 0;
+            double allTimeMax = dailyMinAndMax.Select(stat => (double?)stat.Max).Max() ?? 1;
             // Prepare data for the table
             var table = dailyMinAndMax
                 .Select(stat => new object[] { TimeUtil.VSDateTimeToYearMonthDay(stat.DateTime), $"{stat.Min:F1}", $"{stat.Max:F1}", new BarValue(stat.RateMin, stat.RateMax) })
