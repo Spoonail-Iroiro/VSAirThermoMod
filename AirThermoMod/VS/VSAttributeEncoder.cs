@@ -11,7 +11,11 @@ using Vintagestory.Server;
 namespace AirThermoMod.VS {
     internal static class VSAttributeEncoder {
 
-        // array of structs -> struct of arrays
+        /// <summary>
+        /// Convert List<TemperatureSamples> (array of structs) to (int[], double[]) (struct of arrays)
+        /// </summary>
+        /// <param name="samples"></param>
+        /// <returns>(times, temperatures)</returns>
         public static Tuple<int[], double[]> ToTemperatureSamplesSoA(List<TemperatureSample> samples) {
             var count = samples.Count;
 
@@ -26,7 +30,11 @@ namespace AirThermoMod.VS {
             return Tuple.Create(times, temperatures);
         }
 
-
+        /// <summary>
+        /// Encode List<TemperatureSample> to Attribute of Vintage Story
+        /// </summary>
+        /// <param name="samples"></param>
+        /// <returns></returns>
         public static IAttribute EncodeTemperatureSamples(List<TemperatureSample> samples) {
             var soa = ToTemperatureSamplesSoA(samples);
 
@@ -37,32 +45,5 @@ namespace AirThermoMod.VS {
 
             return tree;
         }
-        //public static IAttribute Encode(object obj) {
-        //    // TODO: dict
-        //    if (obj is IEnumerable<object> list) {
-        //        return EncodeIEnumerable(list);
-        //    }
-        //    else {
-        //        return EncodeGeneralObject(obj);
-        //    }
-        //}
-
-        //private static TreeAttribute EncodeGeneralObject(object obj) {
-        //    if (obj is TemperatureSample sample) {
-        //        var tree = new TreeAttribute();
-        //        tree.SetInt("time", sample.Time);
-        //        tree.SetDouble("temperature", sample.Temperature);
-        //        return tree;
-        //    }
-        //    else {
-        //        throw new NotImplementedException();
-        //    }
-        //}
-
-        //private static TreeArrayAttribute EncodeIEnumerable(IEnumerable<object> list) {
-        //    // It's TreeArray attribute, array in array is not allowed, so parsing elements as general object here
-        //    // Todo: dict
-        //    return new TreeArrayAttribute(list.Select(x => EncodeGeneralObject(x)).ToArray());
-        //}
     }
 }

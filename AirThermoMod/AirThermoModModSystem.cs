@@ -9,13 +9,12 @@ using Vintagestory.Client.NoObf;
 using Vintagestory.Server;
 
 namespace AirThermoMod {
+    // Main mod system class for Thermometer mod
     public class AirThermoModModSystem : ModSystem {
         public AirThermoModConfig Config { get; private set; }
-        ICoreClientAPI capi;
+
         ICoreServerAPI sapi;
 
-        // Called on server and client
-        // Useful for registering block/entity classes on both sides
         public override void Start(ICoreAPI api) {
             api.RegisterBlockClass(Mod.Info.ModID + ".BlockAirThermo", typeof(BlockAirThermo));
             api.RegisterBlockClass(Mod.Info.ModID + ".BlockAirThermoUpper", typeof(BlockAirThermoUpper));
@@ -24,6 +23,8 @@ namespace AirThermoMod {
 
         public override void StartServerSide(ICoreServerAPI api) {
             sapi = api;
+
+            // Load or initialize the config file
             var configName = Mod.Info.ModID + ".json";
             Config = api.LoadModConfig<AirThermoModConfig>(configName);
             if (Config == null) {
@@ -31,6 +32,7 @@ namespace AirThermoMod {
                 api.StoreModConfig(Config, configName);
             }
 
+            // Define main console command 
             var baseCommand = api.ChatCommands
                 .Create("airthermo")
                 .WithDescription("Commands for Air Thermometer Mod")
@@ -38,18 +40,20 @@ namespace AirThermoMod {
                 .RequiresPlayer()
                 .HandleWith((args) => {
                     if (args.Caller.Player is IServerPlayer splr) {
-                        splr.SendMessage(GlobalConstants.CurrentChatGroup, "See `/help airthermo` for usage", EnumChatType.Notification);
+                        splr.SendMessage(GlobalConstants.CurrentChatGroup, "See `.chb` for usage", EnumChatType.Notification);
                     }
                     return TextCommandResult.Success("", null);
                 });
 
+            // Define sub command `force-sample-all` 
             baseCommand.BeginSubCommand("force-sample-all")
-                .WithDescription("Make target air thermometer sample temperature over retention period")
+                .WithDescription("Make targeted thermometer sample temperature over retention period")
                 .RequiresPrivilege(Privilege.controlserver)
                 .RequiresPlayer()
                 .HandleWith(CmdForceSampleAll);
         }
 
+        // Command handler for subcommand `force-sample-all`
         TextCommandResult CmdForceSampleAll(TextCommandCallingArgs args) {
             if (args.Caller.Player is IServerPlayer splr) {
                 var sel = splr.CurrentBlockSelection;
@@ -60,7 +64,7 @@ namespace AirThermoMod {
                 }
                 var beAirThermo = sapi.World.BlockAccessor.GetBlockEntity(bePos) as BEAirThermo;
                 if (beAirThermo == null) {
-                    return TextCommandResult.Error("Error: No air thermometers targeted");
+                    return TextCommandResult.Error("Error: No thermometers targeted");
                 }
                 else {
                     beAirThermo.ScheduleForceSampleOverRetentionPeriod();
@@ -71,7 +75,6 @@ namespace AirThermoMod {
         }
 
         public override void StartClientSide(ICoreClientAPI api) {
-            capi = api;
         }
 
     }

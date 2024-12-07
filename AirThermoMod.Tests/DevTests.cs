@@ -56,8 +56,13 @@ namespace AirThermoMod.Tests {
 
 
         [TestMethod]
-        public void SmoothStepTest() {
-            OggDecoder decoder = new OggDecoder();
+        public void TempTest() {
+            //var samples = Enumerable.Range(0, 10)
+            //    .Select(i => (time: 60 * i, temperature: 6.5 * i));
+            var samples = Enumerable.Empty<(int time, double temperature)>();
+
+            var minAll = samples.Select(samp => (double?)samp.temperature).Min();
+            var maxAll = samples.Select(samp => (double?)samp.temperature).Max();
         }
 
         [TestMethod]
