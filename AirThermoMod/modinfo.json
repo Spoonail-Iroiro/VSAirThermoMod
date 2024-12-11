@@ -1,12 +1,13 @@
 {
   "type": "code",
+  "name": "Thermometer",
   "modid": "airthermomod",
-  "name": "Thermometer Mod",
+  "version": "0.1.2",
+  "description": "Adds thermometer",
   "authors": [
     "Spoonail"
   ],
-  "description": "Thermometer",
-  "version": "0.1.2",
+  "side": "Universal",
   "dependencies": {
     "game": ""
   }
