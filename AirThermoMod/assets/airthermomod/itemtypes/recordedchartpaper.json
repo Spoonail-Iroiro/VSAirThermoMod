@@ -1,6 +1,6 @@
 {
-  "code": "transfernote",
-  "class": "airthermomod.ItemTransferNote",
+  "code": "recordedchartpaper",
+  "class": "airthermomod.ItemRecordedChartPaper",
   "shape": {
     "base": "game:item/lore/paper"
   },

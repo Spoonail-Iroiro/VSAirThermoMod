@@ -23,7 +23,7 @@ namespace AirThermoMod {
             api.RegisterBlockClass(Mod.Info.ModID + ".BlockAirThermo", typeof(BlockAirThermo));
             api.RegisterBlockClass(Mod.Info.ModID + ".BlockAirThermoUpper", typeof(BlockAirThermoUpper));
             api.RegisterBlockEntityClass(Mod.Info.ModID + ".BEAirThermo", typeof(BEAirThermo));
-            api.RegisterItemClass(Mod.Info.ModID + ".ItemTransferNote", typeof(ItemTransferNote));
+            api.RegisterItemClass(Mod.Info.ModID + ".ItemRecordedChartPaper", typeof(ItemRecordedChartPaper));
         }
 
         public override void StartServerSide(ICoreServerAPI api) {
