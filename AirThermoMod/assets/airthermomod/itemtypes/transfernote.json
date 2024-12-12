@@ -1,19 +1,12 @@
 {
-  "code": "transfer-note",
+  "code": "transfernote",
+  "class": "airthermomod.ItemTransferNote",
   "shape": {
     "base": "game:item/lore/paper"
   },
   "texture": {
     "base": "game:item/lore/paper"
   },
-  "variantgroups": [
-    {
-      "code": "type",
-      "states": [
-        "parchment"
-      ]
-    }
-  ],
   "creativeinventory": {
     "general": [
       "*"
@@ -72,5 +65,23 @@
       "z": 0.47
     },
     "scale": 1.6
+  },
+  "groundTransform": {
+    "translation": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "rotation": {
+      "x": -7,
+      "y": 0,
+      "z": 0
+    },
+    "origin": {
+      "x": 0.5,
+      "y": 0.07,
+      "z": 0.41
+    },
+    "scale": 3.5
   }
 }

@@ -5,11 +5,14 @@ using FluentAssertions;
 using ProtoBuf;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.Client;
 using Vintagestory.Client.NoObf;
+using Vintagestory.Common;
+using Vintagestory.GameContent;
 
 namespace AirThermoMod.Tests {
     [ProtoContract(SkipConstructor = true)]
@@ -63,6 +66,11 @@ namespace AirThermoMod.Tests {
 
             var minAll = samples.Select(samp => (double?)samp.temperature).Min();
             var maxAll = samples.Select(samp => (double?)samp.temperature).Max();
+            // ItemStack
+            //AssetLocation.Create()
+            //ItemCheese
+            //ItemStack
+
         }
 
         [TestMethod]

@@ -1,6 +1,7 @@
 ﻿using AirThermoMod.BlockEntities;
 using AirThermoMod.Blocks;
 using AirThermoMod.Config;
+using AirThermoMod.Items;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -15,10 +16,14 @@ namespace AirThermoMod {
 
         ICoreServerAPI sapi;
 
+        public static string ModID { get; private set; } = "";
+
         public override void Start(ICoreAPI api) {
+            ModID = Mod.Info.ModID;
             api.RegisterBlockClass(Mod.Info.ModID + ".BlockAirThermo", typeof(BlockAirThermo));
             api.RegisterBlockClass(Mod.Info.ModID + ".BlockAirThermoUpper", typeof(BlockAirThermoUpper));
             api.RegisterBlockEntityClass(Mod.Info.ModID + ".BEAirThermo", typeof(BEAirThermo));
+            api.RegisterItemClass(Mod.Info.ModID + ".ItemTransferNote", typeof(ItemTransferNote));
         }
 
         public override void StartServerSide(ICoreServerAPI api) {
@@ -39,10 +44,7 @@ namespace AirThermoMod {
                 .RequiresPrivilege(Privilege.chat)
                 .RequiresPlayer()
                 .HandleWith((args) => {
-                    if (args.Caller.Player is IServerPlayer splr) {
-                        splr.SendMessage(GlobalConstants.CurrentChatGroup, "See `.chb` for usage", EnumChatType.Notification);
-                    }
-                    return TextCommandResult.Success("", null);
+                    return TextCommandResult.Success("See `.chb` for usage", null);
                 });
 
             // Define sub command `force-sample-all` 
@@ -68,7 +70,7 @@ namespace AirThermoMod {
                 }
                 else {
                     beAirThermo.ScheduleForceSampleOverRetentionPeriod();
-                    splr.SendMessage(GlobalConstants.CurrentChatGroup, "Scheduled sampling temperature over retention period (might take some seconds)", EnumChatType.Notification);
+                    return TextCommandResult.Success("Scheduled sampling temperature over retention period (might take some seconds)");
                 }
             }
             return TextCommandResult.Success("");
