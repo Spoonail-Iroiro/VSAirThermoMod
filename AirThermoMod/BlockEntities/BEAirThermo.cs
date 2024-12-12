@@ -94,9 +94,9 @@ namespace AirThermoMod.BlockEntities {
         }
 
         public bool Interact(IWorldAccessor world, IPlayer byPlayer) {
-            if (TryCreateTransferNote(world, byPlayer)) return true;
+            if (TryCreateRecordedChartPaper(world, byPlayer)) return true;
 
-            if (TryImportTransferNote(world, byPlayer)) return true;
+            if (TryImportRecordedChartPaper(world, byPlayer)) return true;
 
             toggleGuiClient();
 
@@ -106,18 +106,18 @@ namespace AirThermoMod.BlockEntities {
         record class SingleItemRecipe(int count);
 
         /// <summary>
-        /// If the `slot` satisfies any recipe for transfer note, this returns the recipe as SingleItemRecipe. Otherwise, returns null.
+        /// If the `slot` satisfies any recipe for recorded chart paper, this returns the recipe as SingleItemRecipe. Otherwise, returns null.
         /// </summary>
         /// <param name="slot"></param>
         /// <returns></returns>
-        private SingleItemRecipe GetMatchedRecipeForTransferNote(ItemSlot slot) {
+        private SingleItemRecipe GetMatchedRecipeForRecordedChartPaper(ItemSlot slot) {
             if (slot.Itemstack?.Collectible.Code == new AssetLocation("drygrass") && slot.StackSize >= 4) {
                 return new SingleItemRecipe(4);
             }
             else if (slot.Itemstack?.Collectible.Code.FirstCodePart() == "paper" && slot.StackSize >= 1) {
                 var textAttr = slot.Itemstack?.Attributes.GetAsString("text");
 
-                // Written parchment cannot be used for transfer note
+                // Written parchment cannot be used for recorded chart paper
                 if (textAttr != null) return null;
 
                 return new SingleItemRecipe(1);
@@ -125,14 +125,14 @@ namespace AirThermoMod.BlockEntities {
             return null;
         }
 
-        private bool TryCreateTransferNote(IWorldAccessor world, IPlayer byPlayer) {
+        private bool TryCreateRecordedChartPaper(IWorldAccessor world, IPlayer byPlayer) {
             if (byPlayer == null) return false;
 
             var ahs = byPlayer.InventoryManager.ActiveHotbarSlot;
 
             if (ahs == null) return false;
 
-            var matchedRecipe = GetMatchedRecipeForTransferNote(ahs);
+            var matchedRecipe = GetMatchedRecipeForRecordedChartPaper(ahs);
 
             if (matchedRecipe != null) {
                 if (Api.Side == EnumAppSide.Client) {
@@ -142,16 +142,16 @@ namespace AirThermoMod.BlockEntities {
                     var materialStack = ahs.TakeOut(matchedRecipe.count);
                     ahs.MarkDirty();
 
-                    var transferNote = new ItemStack(Api.World.GetItem(new AssetLocation("airthermomod", "transfernote")));
-                    transferNote.Attributes.SetItemstack("material", materialStack);
-                    transferNote.Attributes.SetBlockPos("srcpos", Pos);
+                    var recordedChartPaper = new ItemStack(Api.World.GetItem(new AssetLocation("airthermomod", "recordedchartpaper")));
+                    recordedChartPaper.Attributes.SetItemstack("material", materialStack);
+                    recordedChartPaper.Attributes.SetBlockPos("srcpos", Pos);
 
-                    if (!byPlayer.InventoryManager.TryGiveItemstack(transferNote, true)) {
-                        Api.World.SpawnItemEntity(transferNote, byPlayer.Entity.Pos.XYZ.AddCopy(0, 2, 0));
+                    if (!byPlayer.InventoryManager.TryGiveItemstack(recordedChartPaper, true)) {
+                        Api.World.SpawnItemEntity(recordedChartPaper, byPlayer.Entity.Pos.XYZ.AddCopy(0, 2, 0));
                     }
 
                     if (byPlayer is IServerPlayer splr) {
-                        splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-created-transfernote"));
+                        splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-created-recordedchartpaper"));
                     }
 
                     return true;
@@ -161,23 +161,23 @@ namespace AirThermoMod.BlockEntities {
             return false;
         }
 
-        private bool TryImportTransferNote(IWorldAccessor world, IPlayer byPlayer) {
+        private bool TryImportRecordedChartPaper(IWorldAccessor world, IPlayer byPlayer) {
             if (byPlayer == null) return false;
 
             var ahs = byPlayer.InventoryManager.ActiveHotbarSlot;
 
             if (ahs == null) return false;
 
-            if (ahs.Itemstack?.Collectible.Code == new AssetLocation("airthermomod", "transfernote") && ahs.StackSize >= 1) {
+            if (ahs.Itemstack?.Collectible.Code == new AssetLocation("airthermomod", "recordedchartpaper") && ahs.StackSize >= 1) {
                 if (Api.Side == EnumAppSide.Client) {
                     return true;
                 }
                 else {
                     var splr = byPlayer as IServerPlayer;
 
-                    var transferNoteStack = ahs.Itemstack;
+                    var recordedChartPaperStack = ahs.Itemstack;
 
-                    var srcPos = transferNoteStack.Attributes.GetBlockPos("srcpos");
+                    var srcPos = recordedChartPaperStack.Attributes.GetBlockPos("srcpos");
 
                     if (srcPos == null) {
                         splr?.SendIngameError("airthermomod-nosrcpos");
@@ -189,7 +189,7 @@ namespace AirThermoMod.BlockEntities {
                     ahs.TakeOut(1);
                     ahs.MarkDirty();
 
-                    var materialStack = transferNoteStack.Attributes.GetItemstack("material");
+                    var materialStack = recordedChartPaperStack.Attributes.GetItemstack("material");
 
                     if (materialStack != null) {
                         materialStack.ResolveBlockOrItem(world);
@@ -198,7 +198,7 @@ namespace AirThermoMod.BlockEntities {
                         }
                     }
 
-                    splr?.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-imported-transfernote"));
+                    splr?.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-imported-recordedchartpaper"));
 
                     return true;
                 }
