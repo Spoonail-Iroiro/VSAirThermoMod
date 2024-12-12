@@ -16,6 +16,7 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
+using Vintagestory.Client.NoObf;
 using Vintagestory.Common;
 using Vintagestory.GameContent;
 using Vintagestory.Server;
@@ -79,7 +80,7 @@ namespace AirThermoMod.BlockEntities {
             if (Api is not ICoreClientAPI capi) return;
 
             if (clientDialog == null) {
-                clientDialog = new GuiDialogBlockEntityAirThermo("Air Thermometer", Pos, capi, temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
+                clientDialog = new GuiDialogBlockEntityAirThermo("Thermometer", Pos, capi, temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
                 clientDialog.ReverseOrderButtonClicked = OnReverseOrderButtonClicked;
             }
 
@@ -93,10 +94,117 @@ namespace AirThermoMod.BlockEntities {
         }
 
         public bool Interact(IWorldAccessor world, IPlayer byPlayer) {
-            var calendar = Api.World.Calendar;
+            if (TryCreateTransferNote(world, byPlayer)) return true;
+
+            if (TryImportTransferNote(world, byPlayer)) return true;
 
             toggleGuiClient();
+
             return true;
+        }
+
+        record class SingleItemRecipe(int count);
+
+        /// <summary>
+        /// If the `slot` satisfies any recipe for transfer note, this returns the recipe as SingleItemRecipe. Otherwise, returns null.
+        /// </summary>
+        /// <param name="slot"></param>
+        /// <returns></returns>
+        private SingleItemRecipe GetMatchedRecipeForTransferNote(ItemSlot slot) {
+            if (slot.Itemstack?.Collectible.Code == new AssetLocation("drygrass") && slot.StackSize >= 4) {
+                return new SingleItemRecipe(4);
+            }
+            else if (slot.Itemstack?.Collectible.Code.FirstCodePart() == "paper" && slot.StackSize >= 1) {
+                var textAttr = slot.Itemstack?.Attributes.GetAsString("text");
+
+                // Written parchment cannot be used for transfer note
+                if (textAttr != null) return null;
+
+                return new SingleItemRecipe(1);
+            }
+            return null;
+        }
+
+        private bool TryCreateTransferNote(IWorldAccessor world, IPlayer byPlayer) {
+            if (byPlayer == null) return false;
+
+            var ahs = byPlayer.InventoryManager.ActiveHotbarSlot;
+
+            if (ahs == null) return false;
+
+            var matchedRecipe = GetMatchedRecipeForTransferNote(ahs);
+
+            if (matchedRecipe != null) {
+                if (Api.Side == EnumAppSide.Client) {
+                    return true;
+                }
+                else {
+                    var materialStack = ahs.TakeOut(matchedRecipe.count);
+                    ahs.MarkDirty();
+
+                    var transferNote = new ItemStack(Api.World.GetItem(new AssetLocation("airthermomod", "transfernote")));
+                    transferNote.Attributes.SetItemstack("material", materialStack);
+                    transferNote.Attributes.SetBlockPos("srcpos", Pos);
+
+                    if (!byPlayer.InventoryManager.TryGiveItemstack(transferNote, true)) {
+                        Api.World.SpawnItemEntity(transferNote, byPlayer.Entity.Pos.XYZ.AddCopy(0, 2, 0));
+                    }
+
+                    if (byPlayer is IServerPlayer splr) {
+                        splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-created-transfernote"));
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool TryImportTransferNote(IWorldAccessor world, IPlayer byPlayer) {
+            if (byPlayer == null) return false;
+
+            var ahs = byPlayer.InventoryManager.ActiveHotbarSlot;
+
+            if (ahs == null) return false;
+
+            if (ahs.Itemstack?.Collectible.Code == new AssetLocation("airthermomod", "transfernote") && ahs.StackSize >= 1) {
+                if (Api.Side == EnumAppSide.Client) {
+                    return true;
+                }
+                else {
+                    var splr = byPlayer as IServerPlayer;
+
+                    var transferNoteStack = ahs.Itemstack;
+
+                    var srcPos = transferNoteStack.Attributes.GetBlockPos("srcpos");
+
+                    if (srcPos == null) {
+                        splr?.SendIngameError("airthermomod-nosrcpos");
+                        return true;
+                    }
+
+                    // TODO: import from srcPos
+
+                    ahs.TakeOut(1);
+                    ahs.MarkDirty();
+
+                    var materialStack = transferNoteStack.Attributes.GetItemstack("material");
+
+                    if (materialStack != null) {
+                        materialStack.ResolveBlockOrItem(world);
+                        if (!byPlayer.InventoryManager.TryGiveItemstack(materialStack, true)) {
+                            Api.World.SpawnItemEntity(materialStack, byPlayer.Entity.Pos.XYZ.AddCopy(0, 1, 0));
+                        }
+                    }
+
+                    splr?.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-imported-transfernote"));
+
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private ClimateCondition GetClimateConditionAtSpecificTime(BlockPos pos, double totalHours, ClimateCondition previousCond = null) {
