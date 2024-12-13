@@ -76,7 +76,7 @@ namespace AirThermoMod.BlockEntities {
             }
         }
 
-        protected void toggleGuiClient() {
+        protected void toggleGuiClient(IPlayer byPlayer) {
             if (Api is not ICoreClientAPI capi) return;
 
             if (clientDialog == null) {
@@ -89,7 +89,20 @@ namespace AirThermoMod.BlockEntities {
             }
             else {
                 clientDialog.SetupDialog(temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
-                clientDialog.TryOpen();
+                if (clientDialog.TryOpen()) {
+                    if (byPlayer != null) {
+                        //Api.World.PlaySoundFor(
+                        //    new AssetLocation("sounds/block/chestopen"),
+                        //    byPlayer,
+                        //    randomizePitch: false
+                        //);
+                        Api.World.PlaySoundAt(
+                            new AssetLocation("sounds/block/largechestopen"),
+                            byPlayer,
+                            randomizePitch: true
+                        );
+                    }
+                }
             }
         }
 
@@ -98,7 +111,7 @@ namespace AirThermoMod.BlockEntities {
 
             if (TryImportRecordedChartPaper(world, byPlayer)) return true;
 
-            toggleGuiClient();
+            toggleGuiClient(byPlayer);
 
             return true;
         }
@@ -150,9 +163,11 @@ namespace AirThermoMod.BlockEntities {
                         Api.World.SpawnItemEntity(recordedChartPaper, byPlayer.Entity.Pos.XYZ.AddCopy(0, 2, 0));
                     }
 
-                    if (byPlayer is IServerPlayer splr) {
-                        splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-created-recordedchartpaper"));
-                    }
+                    Api.World.PlaySoundFor(
+                        new AssetLocation("sounds/effect/writing"),
+                        byPlayer,
+                        randomizePitch: false
+                    );
 
                     return true;
                 }
@@ -173,32 +188,38 @@ namespace AirThermoMod.BlockEntities {
                     return true;
                 }
                 else {
-                    var splr = byPlayer as IServerPlayer;
+                    if (byPlayer is IServerPlayer splr) {
+                        var recordedChartPaperStack = ahs.Itemstack;
 
-                    var recordedChartPaperStack = ahs.Itemstack;
+                        var srcPos = recordedChartPaperStack.Attributes.GetBlockPos("srcpos");
 
-                    var srcPos = recordedChartPaperStack.Attributes.GetBlockPos("srcpos");
-
-                    if (srcPos == null) {
-                        splr?.SendIngameError("airthermomod-nosrcpos");
-                        return true;
-                    }
-
-                    // TODO: import from srcPos
-
-                    ahs.TakeOut(1);
-                    ahs.MarkDirty();
-
-                    var materialStack = recordedChartPaperStack.Attributes.GetItemstack("material");
-
-                    if (materialStack != null) {
-                        materialStack.ResolveBlockOrItem(world);
-                        if (!byPlayer.InventoryManager.TryGiveItemstack(materialStack, true)) {
-                            Api.World.SpawnItemEntity(materialStack, byPlayer.Entity.Pos.XYZ.AddCopy(0, 1, 0));
+                        if (srcPos == null) {
+                            splr.SendIngameError("airthermomod-nosrcpos");
+                            return true;
                         }
-                    }
 
-                    splr?.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-imported-recordedchartpaper"));
+                        // TODO: import from srcPos
+
+                        ahs.TakeOut(1);
+                        ahs.MarkDirty();
+
+                        var materialStack = recordedChartPaperStack.Attributes.GetItemstack("material");
+
+                        if (materialStack != null) {
+                            materialStack.ResolveBlockOrItem(world);
+                            if (!byPlayer.InventoryManager.TryGiveItemstack(materialStack, true)) {
+                                Api.World.SpawnItemEntity(materialStack, byPlayer.Entity.Pos.XYZ.AddCopy(0, 2, 0));
+                            }
+                        }
+
+                        Api.World.PlaySoundFor(
+                            new AssetLocation("sounds/block/sand"),
+                            byPlayer,
+                            randomizePitch: false
+                        );
+
+                        splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-imported-recordedchartpaper"));
+                    }
 
                     return true;
                 }
