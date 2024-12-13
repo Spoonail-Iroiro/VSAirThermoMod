@@ -91,15 +91,10 @@ namespace AirThermoMod.BlockEntities {
                 clientDialog.SetupDialog(temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
                 if (clientDialog.TryOpen()) {
                     if (byPlayer != null) {
-                        //Api.World.PlaySoundFor(
-                        //    new AssetLocation("sounds/block/chestopen"),
-                        //    byPlayer,
-                        //    randomizePitch: false
-                        //);
-                        Api.World.PlaySoundAt(
+                        Api.World.PlaySoundFor(
                             new AssetLocation("sounds/block/largechestopen"),
                             byPlayer,
-                            randomizePitch: true
+                            randomizePitch: false
                         );
                     }
                 }
@@ -198,7 +193,30 @@ namespace AirThermoMod.BlockEntities {
                             return true;
                         }
 
-                        // TODO: import from srcPos
+                        if (srcPos != Pos) {
+                            var srcBE = Api.World.BlockAccessor.GetBlockEntity<BEAirThermo>(srcPos);
+
+                            if (srcBE == null) {
+                                splr.SendIngameError("airthermomod-nosrc");
+                                return true;
+                            }
+
+                            temperatureRecorder.Extend(srcBE.temperatureRecorder.TemperatureSamples);
+                            temperatureRecorder.Normalize();
+
+                            MarkDirty();
+
+                            splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-imported-recordedchartpaper"));
+
+                            Api.World.PlaySoundFor(
+                                new AssetLocation("sounds/block/sand"),
+                                byPlayer,
+                                randomizePitch: false
+                            );
+                        }
+                        else {
+                            splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-not-imported-same-pos"));
+                        }
 
                         ahs.TakeOut(1);
                         ahs.MarkDirty();
@@ -212,13 +230,6 @@ namespace AirThermoMod.BlockEntities {
                             }
                         }
 
-                        Api.World.PlaySoundFor(
-                            new AssetLocation("sounds/block/sand"),
-                            byPlayer,
-                            randomizePitch: false
-                        );
-
-                        splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-imported-recordedchartpaper"));
                     }
 
                     return true;

@@ -2,9 +2,11 @@
   "year-month-day": "{0}. {1}, Year {2}",
   "block-airthermo-ns": "Thermometer",
   "blockdesc-airthermo*": "A self-recording thermometer housed in a Stevenson screen.",
-  "game:ingameerror-airthermomod-nosrcpos": "No source BlockPos info found.",
+  "game:ingameerror-airthermomod-nosrcpos": "No source BlockPos info found",
+  "game:ingameerror-airthermomod-nosrc": "No source thermometer found",
   "item-recordedchartpaper": "Recorded chart paper",
-  "itemdesc-recordedchartpaper": "Right click a thermometer with this to transfer data from the source one. Warning: Don't break the source thermometer until you finish transferring!",
+  "itemdesc-recordedchartpaper": "Right-click a thermometer with this to copy data from the source one. Warning: Don't break the source before completing the copy!",
   "src-pos-info": "Source: ({0}, {1}, {2})",
-  "message-imported-recordedchartpaper": "Imported data from the source thermometer"
+  "message-imported-recordedchartpaper": "Copied data from the source thermometer",
+  "message-not-imported-same-pos": "The source and destination thermometers are the same"
 }
