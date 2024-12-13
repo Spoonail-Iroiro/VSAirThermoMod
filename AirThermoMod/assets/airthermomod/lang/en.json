@@ -6,5 +6,5 @@
   "item-recordedchartpaper": "Recorded chart paper",
   "itemdesc-recordedchartpaper": "Right click a thermometer with this to transfer data from the source one. Warning: Don't break the source thermometer until you finish transferring!",
   "src-pos-info": "Source: ({0}, {1}, {2})",
-  "message-imported-recordedchartpaper": "Completed importing data from the source thermometer"
+  "message-imported-recordedchartpaper": "Imported data from the source thermometer"
 }
