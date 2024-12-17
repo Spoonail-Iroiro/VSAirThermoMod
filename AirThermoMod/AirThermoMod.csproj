@@ -65,4 +65,8 @@
     </Content>
   </ItemGroup>
 
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="if not exist &quot;Properties/launchSettings.json&quot; (&#xA;    echo Creating launchsettings.json from template...&#xD;&#xA;    copy &quot;Properties\launchSettings.template.json&quot; &quot;Properties\launchSettings.json&quot;&#xA;) else (&#xA;    echo launchsettings.json already exists. Skipping.&#xA;)" />
+  </Target>
+
 </Project>
