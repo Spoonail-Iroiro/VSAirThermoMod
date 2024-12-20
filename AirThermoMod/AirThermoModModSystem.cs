@@ -39,8 +39,7 @@ namespace AirThermoMod {
 
             // Define main console command 
             var baseCommand = api.ChatCommands
-                .Create("airthermo")
-                .WithDescription("Commands for Air Thermometer Mod")
+                .Create("thermo")
                 .RequiresPrivilege(Privilege.chat)
                 .RequiresPlayer()
                 .HandleWith((args) => {
@@ -49,8 +48,8 @@ namespace AirThermoMod {
 
             // Define sub command `force-sample-all` 
             baseCommand.BeginSubCommand("force-sample-all")
-                .WithDescription("Make targeted thermometer sample temperature over retention period")
-                .RequiresPrivilege(Privilege.controlserver)
+                .WithDescription("Forces the targeted thermometer to get temperature data over the entire retention period (one in-game year)")
+                .RequiresPrivilege(Privilege.chat)
                 .RequiresPlayer()
                 .HandleWith(CmdForceSampleAll);
         }
