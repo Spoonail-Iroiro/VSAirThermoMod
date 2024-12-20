@@ -3,7 +3,7 @@
   "name": "Thermometer",
   "modid": "airthermomod",
   "version": "0.1.2",
-  "description": "Adds thermometer",
+  "description": "Adds self-recording thermometer",
   "authors": [
     "Spoonail"
   ],
