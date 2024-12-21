@@ -16,6 +16,7 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
+using Vintagestory.Client.NoObf;
 using Vintagestory.Common;
 using Vintagestory.GameContent;
 using Vintagestory.Server;
@@ -50,7 +51,6 @@ namespace AirThermoMod.BlockEntities {
         BEAirThermoGuiSetting guiSetting = new BEAirThermoGuiSetting();
 
         public override void Initialize(ICoreAPI api) {
-            api.Logger.Event("Initializing AirThermo...");
             base.Initialize(api);
 
             if (api is ICoreServerAPI sapi) {
@@ -61,18 +61,6 @@ namespace AirThermoMod.BlockEntities {
                     intervalMinute = modSystem.Config.samplingIntervalMinutes;
                 }
             }
-        }
-
-        private string getFormattedStatus() {
-            StringBuilder sb = new();
-            var calendar = Api.World.Calendar;
-            sb.AppendLine($"Now: {calendar.PrettyDate()}");
-            sb.AppendLine($"Last Update:{new VSDateTime(calendar, TimeSpan.FromHours(totalHoursLastUpdate)).PrettyDate()}");
-            var nextUpdateVSDateTime = new VSDateTime(calendar, TimeSpan.FromHours(totalHoursNextUpdate));
-            sb.AppendLine($"Next Update: {nextUpdateVSDateTime.PrettyDate()}");
-            sb.AppendLine($"Samples: {temperatureRecorder.SimpleDescription()}");
-
-            return sb.ToString();
         }
 
         // Update lastUpdateTotalHours and calculate nextUpdateRoundedTotalMinutes
@@ -88,15 +76,11 @@ namespace AirThermoMod.BlockEntities {
             }
         }
 
-        public void OnBlockPlaced() {
-            UpdateTimes(Api.World.Calendar.TotalHours);
-        }
-
-        protected void toggleGuiClient() {
+        protected void toggleGuiClient(IPlayer byPlayer) {
             if (Api is not ICoreClientAPI capi) return;
 
             if (clientDialog == null) {
-                clientDialog = new GuiDialogBlockEntityAirThermo("Air Thermometer", Pos, capi, temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
+                clientDialog = new GuiDialogBlockEntityAirThermo("Thermometer", Pos, capi, temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
                 clientDialog.ReverseOrderButtonClicked = OnReverseOrderButtonClicked;
             }
 
@@ -105,18 +89,154 @@ namespace AirThermoMod.BlockEntities {
             }
             else {
                 clientDialog.SetupDialog(temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
-                clientDialog.TryOpen();
+                if (clientDialog.TryOpen()) {
+                    if (byPlayer != null) {
+                        Api.World.PlaySoundFor(
+                            new AssetLocation("sounds/block/largechestopen"),
+                            byPlayer,
+                            randomizePitch: false
+                        );
+                    }
+                }
             }
         }
 
         public bool Interact(IWorldAccessor world, IPlayer byPlayer) {
-            var calendar = Api.World.Calendar;
+            if (TryCreateRecordedChartPaper(world, byPlayer)) return true;
 
-            toggleGuiClient();
+            if (TryImportRecordedChartPaper(world, byPlayer)) return true;
+
+            toggleGuiClient(byPlayer);
+
             return true;
         }
 
-        protected void SampleTemperaturePeriodical(double totalHoursUntil) {
+        record class SingleItemRecipe(int count);
+
+        /// <summary>
+        /// If the `slot` satisfies any recipe for recorded chart paper, this returns the recipe as SingleItemRecipe. Otherwise, returns null.
+        /// </summary>
+        /// <param name="slot"></param>
+        /// <returns></returns>
+        private SingleItemRecipe GetMatchedRecipeForRecordedChartPaper(ItemSlot slot) {
+            if (slot.Itemstack?.Collectible.Code == new AssetLocation("drygrass") && slot.StackSize >= 4) {
+                return new SingleItemRecipe(4);
+            }
+            else if (slot.Itemstack?.Collectible.Code.FirstCodePart() == "paper" && slot.StackSize >= 1) {
+                var textAttr = slot.Itemstack?.Attributes.GetAsString("text");
+
+                // Written parchment cannot be used for recorded chart paper
+                if (textAttr != null) return null;
+
+                return new SingleItemRecipe(1);
+            }
+            return null;
+        }
+
+        private bool TryCreateRecordedChartPaper(IWorldAccessor world, IPlayer byPlayer) {
+            if (byPlayer == null) return false;
+
+            var ahs = byPlayer.InventoryManager.ActiveHotbarSlot;
+
+            if (ahs == null) return false;
+
+            var matchedRecipe = GetMatchedRecipeForRecordedChartPaper(ahs);
+
+            if (matchedRecipe != null) {
+                if (Api.Side == EnumAppSide.Client) {
+                    return true;
+                }
+                else {
+                    var materialStack = ahs.TakeOut(matchedRecipe.count);
+                    ahs.MarkDirty();
+
+                    var recordedChartPaper = new ItemStack(Api.World.GetItem(new AssetLocation("airthermomod", "recordedchartpaper")));
+                    recordedChartPaper.Attributes.SetItemstack("material", materialStack);
+                    recordedChartPaper.Attributes.SetBlockPos("srcpos", Pos);
+
+                    if (!byPlayer.InventoryManager.TryGiveItemstack(recordedChartPaper, true)) {
+                        Api.World.SpawnItemEntity(recordedChartPaper, byPlayer.Entity.Pos.XYZ.AddCopy(0, 2, 0));
+                    }
+
+                    Api.World.PlaySoundFor(
+                        new AssetLocation("sounds/effect/writing"),
+                        byPlayer,
+                        randomizePitch: false
+                    );
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool TryImportRecordedChartPaper(IWorldAccessor world, IPlayer byPlayer) {
+            if (byPlayer == null) return false;
+
+            var ahs = byPlayer.InventoryManager.ActiveHotbarSlot;
+
+            if (ahs == null) return false;
+
+            if (ahs.Itemstack?.Collectible.Code == new AssetLocation("airthermomod", "recordedchartpaper") && ahs.StackSize >= 1) {
+                if (Api.Side == EnumAppSide.Client) {
+                    return true;
+                }
+                else {
+                    if (byPlayer is IServerPlayer splr) {
+                        var recordedChartPaperStack = ahs.Itemstack;
+
+                        var srcPos = recordedChartPaperStack.Attributes.GetBlockPos("srcpos");
+
+                        if (srcPos == null) {
+                            splr.SendIngameError("airthermomod-nosrcpos");
+                            return true;
+                        }
+
+                        if (srcPos != Pos) {
+                            var srcBE = Api.World.BlockAccessor.GetBlockEntity<BEAirThermo>(srcPos);
+
+                            if (srcBE == null) {
+                                splr.SendIngameError("airthermomod-nosrc");
+                                return true;
+                            }
+
+                            temperatureRecorder.Extend(srcBE.temperatureRecorder.TemperatureSamples);
+                            temperatureRecorder.Normalize();
+
+                            MarkDirty();
+
+                            splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-imported-recordedchartpaper"));
+
+                            Api.World.PlaySoundFor(
+                                new AssetLocation("sounds/block/sand"),
+                                byPlayer,
+                                randomizePitch: false
+                            );
+                        }
+                        else {
+                            splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-not-imported-same-pos"));
+                        }
+
+                        ahs.TakeOut(1);
+                        ahs.MarkDirty();
+
+                        var materialStack = recordedChartPaperStack.Attributes.GetItemstack("material");
+
+                        if (materialStack != null) {
+                            materialStack.ResolveBlockOrItem(world);
+                            if (!byPlayer.InventoryManager.TryGiveItemstack(materialStack, true)) {
+                                Api.World.SpawnItemEntity(materialStack, byPlayer.Entity.Pos.XYZ.AddCopy(0, 2, 0));
+                            }
+                        }
+
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private ClimateCondition GetClimateConditionAtSpecificTime(BlockPos pos, double totalHours, ClimateCondition previousCond = null) {
@@ -161,7 +281,7 @@ namespace AirThermoMod.BlockEntities {
                 var targetTotalHours = totalHoursNextUpdate;
                 cond = GetClimateConditionAtSpecificTime(Pos, targetTotalHours, cond);
                 if (cond != null) {
-                    var temperature = cond == null ? 0 : cond.Temperature;
+                    var temperature = cond.Temperature;
                     var time = TimeUtil.ToRoundedTotalMinutesN(targetTotalHours);
                     temperatureRecorder.AddSample(new TemperatureSample(time, temperature));
                     hasUpdate = true;
@@ -221,6 +341,7 @@ namespace AirThermoMod.BlockEntities {
             var samplesAttribute = VSAttributeEncoder.EncodeTemperatureSamples(temperatureRecorder.TemperatureSamples);
             tree["temperatureSamples"] = samplesAttribute;
             tree.SetBytes("guiSetting", SerializerUtil.Serialize(guiSetting));
+
         }
 
         bool OnReverseOrderButtonClicked() {
@@ -237,6 +358,7 @@ namespace AirThermoMod.BlockEntities {
 
         public override void OnReceivedClientPacket(IPlayer fromPlayer, int packetid, byte[] data) {
             base.OnReceivedClientPacket(fromPlayer, packetid, data);
+
             if (packetid == (int)AirThermoPacketId.GuiSettingChanged) {
                 var received = SerializerUtil.Deserialize<BEAirThermoGuiSetting>(data);
                 guiSetting = received;
@@ -256,20 +378,24 @@ namespace AirThermoMod.BlockEntities {
 
             var currentTotalHours = Api.World.Calendar.TotalHours;
 
-            // Allowed oldest sample and skip sampling older than this point
+            // Allowed oldest sample and sampling older than this point will be skipped
             var retentionPeriodStart = currentTotalHours - TimeUtil.TotalYearsToTotalHours(Api.World.Calendar, retentionPeriodYear);
             if (retentionPeriodStart < 0) retentionPeriodStart = 0;
 
             UpdateTimes(retentionPeriodStart);
         }
 
-
         public override void OnBlockPlaced(ItemStack byItemStack = null) {
             base.OnBlockPlaced(byItemStack);
 
-            clientDialog?.TryClose();
-            clientDialog?.Dispose();
-            clientDialog = null;
+            UpdateTimes(Api.World.Calendar.TotalHours);
         }
+
+        public override void OnBlockRemoved() {
+            base.OnBlockRemoved();
+
+            clientDialog?.TryClose();
+        }
+
     }
 }

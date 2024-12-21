@@ -61,6 +61,50 @@ namespace AirThermoMod.Core.Tests {
         }
 
         [TestMethod()]
+        public void NormalizeTest() {
+            var recorder = new TemperatureRecorder();
+
+            recorder.AddSample(new(60, 5.5));
+            recorder.AddSample(new(90, 7.5));
+            recorder.AddSample(new(90, 8.5));
+            recorder.AddSample(new(30, 3.5));
+
+            recorder.Normalize();
+
+            recorder.TemperatureSamples.Should().Equal(
+                new List<TemperatureSample> {
+                    new(30, 3.5),
+                    new(60, 5.5),
+                    new(90, 7.5),
+                }
+            );
+        }
+
+        [TestMethod()]
+        public void ExtendTest() {
+            var recorder = new TemperatureRecorder();
+
+            recorder.AddSample(new(30, 7.5));
+            recorder.AddSample(new(60, 5.5));
+
+            recorder.Extend(new List<TemperatureSample> {
+                new(50, 9.5),
+                new(20, 10.5)
+            });
+
+            recorder.TemperatureSamples.Should().Equal(
+                new List<TemperatureSample> {
+                    new(30, 7.5),
+                    new(60, 5.5),
+                    new(50, 9.5),
+                    new(20, 10.5)
+                }
+            );
+        }
+
+
+        [Ignore()]
+        [TestMethod()]
         public void CleanUpSamplesByMinTimeTest() {
             Assert.Fail();
         }

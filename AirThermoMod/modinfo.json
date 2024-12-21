@@ -1,12 +1,13 @@
 {
   "type": "code",
+  "name": "Thermometer",
   "modid": "airthermomod",
-  "name": "Air Thermometer",
+  "version": "0.1.2",
+  "description": "Adds self-recording thermometer",
   "authors": [
     "Spoonail"
   ],
-  "description": "Thermometer",
-  "version": "0.1.1",
+  "side": "Universal",
   "dependencies": {
     "game": ""
   }

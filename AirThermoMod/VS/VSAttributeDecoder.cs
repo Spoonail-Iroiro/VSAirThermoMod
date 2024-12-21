@@ -8,6 +8,12 @@ using Vintagestory.API.Datastructures;
 
 namespace AirThermoMod.VS {
     internal static class VSAttributeDecoder {
+        /// <summary>
+        /// Convert (int[], double[]) (struct of arrays) to List<TemperatureSamples> (array of structs)
+        /// </summary>
+        /// <param name="times"></param>
+        /// <param name="temperatures"></param>
+        /// <returns></returns>
         public static List<TemperatureSample> FromTemperatureSamplesSoA(int[] times, double[] temperatures) {
             var count = Math.Min(times.Length, temperatures.Length);
 
@@ -16,6 +22,11 @@ namespace AirThermoMod.VS {
                     .ToList();
         }
 
+        /// <summary>
+        /// Decode Attribute of Vintage Story to List<TemperatureSample> 
+        /// </summary>
+        /// <param name="attr"></param>
+        /// <returns></returns>
         public static List<TemperatureSample> DecodeTemperatureSamples(TreeAttribute attr) {
             var timesAttr = attr.GetAttribute("times") as IntArrayAttribute;
             var temperaturesAttr = attr.GetAttribute("temperatures") as DoubleArrayAttribute;

@@ -24,6 +24,15 @@ namespace AirThermoMod.Core {
             TemperatureSamples.Add(sample);
         }
 
+        public void Normalize() {
+            TemperatureSamples = TemperatureSamples.DistinctBy(sample => sample.Time).ToList();
+            TemperatureSamples.Sort((l, r) => l.Time - r.Time);
+        }
+
+        public void Extend(IEnumerable<TemperatureSample> samples) {
+            TemperatureSamples.AddRange(samples);
+        }
+
         public void CleanUpSamplesByMinTime(int minTime) {
             SetSamples(TemperatureSamples.Where(x => x.Time >= minTime));
         }

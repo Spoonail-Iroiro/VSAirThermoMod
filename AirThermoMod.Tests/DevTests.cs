@@ -5,11 +5,14 @@ using FluentAssertions;
 using ProtoBuf;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.Client;
 using Vintagestory.Client.NoObf;
+using Vintagestory.Common;
+using Vintagestory.GameContent;
 
 namespace AirThermoMod.Tests {
     [ProtoContract(SkipConstructor = true)]
@@ -56,8 +59,18 @@ namespace AirThermoMod.Tests {
 
 
         [TestMethod]
-        public void SmoothStepTest() {
-            OggDecoder decoder = new OggDecoder();
+        public void TempTest() {
+            //var samples = Enumerable.Range(0, 10)
+            //    .Select(i => (time: 60 * i, temperature: 6.5 * i));
+            var samples = Enumerable.Empty<(int time, double temperature)>();
+
+            var minAll = samples.Select(samp => (double?)samp.temperature).Min();
+            var maxAll = samples.Select(samp => (double?)samp.temperature).Max();
+            // ItemStack
+            //AssetLocation.Create()
+            //ItemCheese
+            //ItemStack
+
         }
 
         [TestMethod]
