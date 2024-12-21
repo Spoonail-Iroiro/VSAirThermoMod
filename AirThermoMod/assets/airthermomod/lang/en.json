@@ -8,5 +8,7 @@
   "itemdesc-recordedchartpaper": "Right-click a thermometer with this to copy data from the source one. Warning: Don't break the source before completing the copy!",
   "src-pos-info": "Source: ({0}, {1}, {2})",
   "message-imported-recordedchartpaper": "Copied data from the source thermometer",
-  "message-not-imported-same-pos": "The source and destination thermometers are the same"
+  "message-not-imported-same-pos": "The source and destination thermometers are the same",
+  "block-handbooktitle-airthermo*": "Copying Data",
+  "block-handbooktext-airthermo*": "To copy data between two thermometers,<br><br>1. Right-click the source thermometer with a parchment or four dry grasses to create a recorded chart paper<br>2. Right-click the destination thermometer with the recorded chart paper to copy data from the source<br><br>Warning: Don't break the source thermometer before step 2, or the step will fail and the source data will be lost."
 }

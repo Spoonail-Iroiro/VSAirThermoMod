@@ -49,9 +49,9 @@ namespace AirThermoMod.GUI {
             var controlAreaBounds = ElementBounds.Fixed(0, GuiStyle.TitleBarHeight, 10, 30).WithSizing(ElementSizing.FitToChildren, ElementSizing.FitToChildren);
             bgBounds.WithChildren(controlAreaBounds);
 
-            var reverseOrderbuttonBounds = ElementBounds.Fixed(0, 0, 90, 30);
+            var reverseOrderbuttonBounds = ElementBounds.Fixed(0, 0, 120, 25);
             controlAreaBounds.WithChildren(reverseOrderbuttonBounds);
-            var reverseOrderButton = new GuiElementTextButton(capi, "Reverse order", CairoFont.ButtonText(), CairoFont.ButtonPressedText(), OnReverseOrderButtonClicked, reverseOrderbuttonBounds);
+            var reverseOrderButton = new GuiElementTextButton(capi, "Reverse order", CairoFont.WhiteSmallText(), CairoFont.WhiteSmallText(), OnReverseOrderButtonClicked, reverseOrderbuttonBounds);
 
             // To use scrollbar, bounds for clipping is required
             var clipBounds = ElementBounds.Fixed(0, 0, 10, 400);
