@@ -46,6 +46,10 @@ namespace AirThermoMod.Blocks {
             if (be != null) {
                 return be.Interact(world, byPlayer);
             }
+            else {
+                api.Logger.Warning("Couldn't find Block Entity (BEAirThermo). Have you loaded this save without mods?");
+
+            }
 
             return base.OnBlockInteractStart(world, byPlayer, blockSel);
         }
