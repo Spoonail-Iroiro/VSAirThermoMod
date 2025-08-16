@@ -30,7 +30,7 @@ namespace AirThermoMod.GUI {
         /// <summary>
         /// Event triggered when 'Reverse Order' button is clicked
         /// </summary>
-        public Func<bool> ReverseOrderButtonClicked { get; set; }
+        public Func<bool>? ReverseOrderButtonClicked { get; set; }
 
         public GuiDialogBlockEntityAirThermo(string dialogTitle, BlockPos blockEntityPos, ICoreClientAPI capi, List<TemperatureSample> samples, string order) : base(dialogTitle, blockEntityPos, capi) {
             if (IsDuplicate) return;
@@ -159,7 +159,7 @@ namespace AirThermoMod.GUI {
         /// <param name="columnTitles"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        GuiElementContainer CreateTable(string name, object[][] tableSource, int x, int y, int[] columnWidth, int rowHeight, string[] columnTitles = null) {
+        GuiElementContainer CreateTable(string name, object[][] tableSource, int x, int y, int[] columnWidth, int rowHeight, string[]? columnTitles = null) {
             var containerBounds = ElementBounds.Fixed(0, 0, 1, 1).WithSizing(ElementSizing.FitToChildren);
             containerBounds.Name = $"table-{name}";
             var container = new GuiElementContainer(capi, containerBounds);
@@ -169,7 +169,7 @@ namespace AirThermoMod.GUI {
             var titleFont = TableTitleText();
 
             if (columnTitles != null) {
-                ElementBounds titleCellBounds = null;
+                ElementBounds? titleCellBounds = null;
                 for (int i = 0; i < columnWidth.Length; ++i) {
                     var previous = titleCellBounds;
                     titleCellBounds = ElementBounds.Fixed(x, y, columnWidth[i], titleHeight);
