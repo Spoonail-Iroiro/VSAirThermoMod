@@ -126,9 +126,9 @@ namespace AirThermoMod.Common {
             return Lang.Get("dateformat", Day, Lang.Get("month-" + MonthName), Year.ToString("0"), Hour.ToString("00"), Minute.ToString("00"));
         }
 
-        public override bool Equals(object obj) => this.Equals(obj as VSDateTime);
+        public override bool Equals(object? obj) => this.Equals(obj as VSDateTime);
 
-        public bool Equals(VSDateTime other) {
+        public bool Equals(VSDateTime? other) {
             if (other is null) return false;
 
             if (Object.ReferenceEquals(this, other)) return true;

@@ -8,7 +8,7 @@ using Vintagestory.API.Datastructures;
 namespace AirThermoMod.VS {
     internal class VSAttributeSameValue : EqualityComparer<IAttribute> {
         // A custom equality comparer for IAttribute objects
-        override public bool Equals(IAttribute x, IAttribute y) {
+        override public bool Equals(IAttribute? x, IAttribute? y) {
             if (ReferenceEquals(x, y)) return true;
 
             if (x is null || y is null) return false;
@@ -18,6 +18,7 @@ namespace AirThermoMod.VS {
             // TreeAttributes are equal when their Keys and Values are equal
             if (x is TreeAttribute tx) {
                 var ty = y as TreeAttribute;
+                if (tx is null || ty is null) return false;
 
                 return tx.Keys.SequenceEqual(ty.Keys) && tx.Values.SequenceEqual(ty.Values, new VSAttributeSameValue());
             }
@@ -29,6 +30,7 @@ namespace AirThermoMod.VS {
             // When the values are arrays (IntArrayAttributes, DoubleArrayAttributes, TreeArrayAttributes...)
             if (xv is Array xva) {
                 var yva = yv as Array;
+                if (xva is null || yva is null) return false;
 
                 var comp = new VSAttributeSameValue();
 
@@ -39,6 +41,8 @@ namespace AirThermoMod.VS {
                 for (var i = 0; i < xva.Length; i++) {
                     var e1 = xva.GetValue(i);
                     var e2 = yva.GetValue(i);
+                    if (e1 is null && e2 is null) continue;
+                    if (e1 is null || e2 is null) return false;
                     if (e1 is IAttribute e1a) {
                         // if the elements are IAttribute, compare them by VSAttributeSameValue (recursively)
                         var e2a = e2 as IAttribute;
