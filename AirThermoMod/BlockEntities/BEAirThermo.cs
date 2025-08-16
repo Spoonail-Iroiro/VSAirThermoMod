@@ -46,7 +46,7 @@ namespace AirThermoMod.BlockEntities {
 
         protected TemperatureRecorder temperatureRecorder = new();
 
-        GuiDialogBlockEntityAirThermo clientDialog;
+        GuiDialogBlockEntityAirThermo? clientDialog;
 
         BEAirThermoGuiSetting guiSetting = new BEAirThermoGuiSetting();
 
@@ -58,7 +58,7 @@ namespace AirThermoMod.BlockEntities {
 
                 var modSystem = sapi.ModLoader.GetModSystem<AirThermoModModSystem>();
                 if (modSystem != null) {
-                    intervalMinute = modSystem.Config.samplingIntervalMinutes;
+                    intervalMinute = modSystem.Config!.samplingIntervalMinutes;
                 }
             }
         }
@@ -118,7 +118,7 @@ namespace AirThermoMod.BlockEntities {
         /// </summary>
         /// <param name="slot"></param>
         /// <returns></returns>
-        private SingleItemRecipe GetMatchedRecipeForRecordedChartPaper(ItemSlot slot) {
+        private SingleItemRecipe? GetMatchedRecipeForRecordedChartPaper(ItemSlot slot) {
             if (slot.Itemstack?.Collectible.Code == new AssetLocation("drygrass") && slot.StackSize >= 4) {
                 return new SingleItemRecipe(4);
             }
@@ -239,7 +239,7 @@ namespace AirThermoMod.BlockEntities {
             return false;
         }
 
-        private ClimateCondition GetClimateConditionAtSpecificTime(BlockPos pos, double totalHours, ClimateCondition previousCond = null) {
+        private ClimateCondition GetClimateConditionAtSpecificTime(BlockPos pos, double totalHours, ClimateCondition? previousCond = null) {
             if (previousCond == null) {
                 return Api.World.BlockAccessor.GetClimateAt(
                     Pos,
@@ -262,7 +262,8 @@ namespace AirThermoMod.BlockEntities {
         }
 
         protected void UpdateFromLastTime() {
-            if (!(Api as ICoreServerAPI).World.IsFullyLoadedChunk(Pos)) return;
+            if (Api is not ICoreServerAPI sapi || !sapi.World.IsFullyLoadedChunk(Pos)) return;
+            //if (Api != null && !(Api as ICoreServerAPI).World.IsFullyLoadedChunk(Pos)) return;
 
             var currentTotalHours = Api.World.Calendar.TotalHours;
 
@@ -274,7 +275,7 @@ namespace AirThermoMod.BlockEntities {
                 UpdateTimes(minTotalHours);
             }
 
-            ClimateCondition cond = null;
+            ClimateCondition? cond = null;
             bool hasUpdate = false;
 
             while (!(currentTotalHours < totalHoursNextUpdate)) {
@@ -385,7 +386,7 @@ namespace AirThermoMod.BlockEntities {
             UpdateTimes(retentionPeriodStart);
         }
 
-        public override void OnBlockPlaced(ItemStack byItemStack = null) {
+        public override void OnBlockPlaced(ItemStack? byItemStack = null) {
             base.OnBlockPlaced(byItemStack);
 
             UpdateTimes(Api.World.Calendar.TotalHours);

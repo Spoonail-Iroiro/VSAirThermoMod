@@ -11,7 +11,7 @@ using Vintagestory.Client.NoObf;
 namespace AirThermoMod.Blocks {
     internal class BlockAirThermo : Block {
 
-        public override void OnBlockPlaced(IWorldAccessor world, BlockPos blockPos, ItemStack byItemStack = null) {
+        public override void OnBlockPlaced(IWorldAccessor world, BlockPos blockPos, ItemStack? byItemStack = null) {
             base.OnBlockPlaced(world, blockPos, byItemStack);
 
             var toPlaceBlock = world.GetBlock(new AssetLocation("airthermomod:airthermoupper-" + Variant["orientation"]));

@@ -12,9 +12,9 @@ using Vintagestory.Server;
 namespace AirThermoMod {
     // Main mod system class for Thermometer mod
     public class AirThermoModModSystem : ModSystem {
-        public AirThermoModConfig Config { get; private set; }
+        public AirThermoModConfig? Config { get; private set; }
 
-        ICoreServerAPI sapi;
+        ICoreServerAPI? sapi;
 
         public static string ModID { get; private set; } = "";
 
@@ -59,7 +59,7 @@ namespace AirThermoMod {
             if (args.Caller.Player is IServerPlayer splr) {
                 var sel = splr.CurrentBlockSelection;
                 var bePos = sel.Position;
-                var block = sapi.World.BlockAccessor.GetBlock(sel.Position);
+                var block = sapi!.World.BlockAccessor.GetBlock(sel.Position);
                 if (block is BlockAirThermoUpper) {
                     bePos = sel.Position.DownCopy();
                 }
