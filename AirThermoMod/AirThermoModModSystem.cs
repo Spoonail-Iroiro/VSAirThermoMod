@@ -14,7 +14,12 @@ namespace AirThermoMod {
     public class AirThermoModModSystem : ModSystem {
         public AirThermoModConfig? Config { get; private set; }
 
+        public AirThermoModClientConfig? ClientConfig { get; private set; }
+
         ICoreServerAPI? sapi;
+        ICoreClientAPI? capi;
+
+        static string ROOT_COMMAND_NAME = "thermo";
 
         public static string ModID { get; private set; } = "";
 
@@ -39,7 +44,7 @@ namespace AirThermoMod {
 
             // Define main console command 
             var baseCommand = api.ChatCommands
-                .Create("thermo")
+                .Create(ROOT_COMMAND_NAME)
                 .RequiresPrivilege(Privilege.chat)
                 .RequiresPlayer()
                 .HandleWith((args) => {
@@ -53,6 +58,53 @@ namespace AirThermoMod {
                 .RequiresPlayer()
                 .HandleWith(CmdForceSampleAll);
         }
+
+        public override void StartClientSide(ICoreClientAPI api) {
+            capi = api;
+
+            var parsers = api.ChatCommands.Parsers;
+
+            var configName = Mod.Info.ModID + "-client.json";
+            ClientConfig = api.LoadModConfig<AirThermoModClientConfig>(configName);
+            if (ClientConfig == null) {
+                ClientConfig = new AirThermoModClientConfig();
+                api.StoreModConfig(ClientConfig, configName);
+            }
+
+            var baseCommand = api.ChatCommands
+                .Create(ROOT_COMMAND_NAME)
+                .RequiresPrivilege(Privilege.chat)
+                .RequiresPlayer();
+
+            baseCommand.BeginSubCommand("fahrenheit")
+                .WithDescription("Display current setting, or set value with passing 'on' or 'off'")
+                .WithArgs(parsers.OptionalWord("on_or_off"))
+                .HandleWith(args => {
+                    if (ClientConfig == null) {
+                        return TextCommandResult.Error($"Can't change client config");
+                    }
+
+                    var onOrOff = (string)args.Parsers[0].GetValue();
+
+                    if (onOrOff == null) {
+                    }
+                    else if (onOrOff == "on") {
+                        ClientConfig.unitSetting = UnitSetting.Fahrenheit;
+                        capi.StoreModConfig(ClientConfig, configName);
+                    }
+                    else if (onOrOff == "off") {
+                        ClientConfig.unitSetting = UnitSetting.Celsius;
+                        capi.StoreModConfig(ClientConfig, configName);
+                    }
+                    else {
+                        return TextCommandResult.Error($"Unrecognized argument");
+                    }
+
+                    return TextCommandResult.Success($"Current unit setting: {ClientConfig.unitSetting}");
+
+                });
+        }
+
 
         // Command handler for subcommand `force-sample-all`
         TextCommandResult CmdForceSampleAll(TextCommandCallingArgs args) {
@@ -75,7 +127,11 @@ namespace AirThermoMod {
             return TextCommandResult.Success("");
         }
 
-        public override void StartClientSide(ICoreClientAPI api) {
+
+
+        public string FormatTemperature(double temperature) {
+            return $"{temperature:F1}";
+
         }
 
     }
