@@ -49,7 +49,7 @@ namespace AirThermoMod.GUI {
             var controlAreaBounds = ElementBounds.Fixed(0, GuiStyle.TitleBarHeight, 10, 30).WithSizing(ElementSizing.FitToChildren, ElementSizing.FitToChildren);
             bgBounds.WithChildren(controlAreaBounds);
 
-            var reverseOrderbuttonBounds = ElementBounds.Fixed(0, 0, 120, 25);
+            var reverseOrderbuttonBounds = ElementBounds.Fixed(160, 0, 120, 25);
             controlAreaBounds.WithChildren(reverseOrderbuttonBounds);
             var reverseOrderButton = new GuiElementTextButton(capi, "Reverse order", CairoFont.WhiteSmallText(), CairoFont.WhiteSmallText(), OnReverseOrderButtonClicked, reverseOrderbuttonBounds);
 
@@ -92,12 +92,13 @@ namespace AirThermoMod.GUI {
             double allTimeMax = dailyMinAndMax.Select(stat => (double?)stat.Max).Max() ?? 1;
             // Prepare data for the table
             var table = dailyMinAndMax
-                .Select(stat => new object[] { TimeUtil.VSDateTimeToYearMonthDay(stat.DateTime), $"{stat.Min:F1}", $"{stat.Max:F1}", new BarValue(stat.RateMin, stat.RateMax) })
+                .Select(stat => new object[] { TimeUtil.VSDateTimeToYearMonthDay(stat.DateTime), $"{stat.Min:F1}°C", $"{stat.Max:F1}°C", new BarValue(stat.RateMin, stat.RateMax) })
                 .ToArray();
 
             // Some style settings
-            var columnWidth = new int[] { 150, 50, 50, 100 };
+            var columnWidth = new int[] { 150, 70, 70, 160 };
             var tableTitle = new string[] { "Date", "Min", "Max", "" };
+
 
             var container = SingleComposer.GetContainer("scroll-content");
 
@@ -119,16 +120,21 @@ namespace AirThermoMod.GUI {
             var minAndMaxBounds = ElementBounds.Fixed(0, 0, columnWidth[columnWidth.Length - 1], 20);
             container.Bounds.WithChild(minAndMaxBounds);
             minAndMaxBounds.RightOf(tableControl.Bounds, -columnWidth[columnWidth.Length - 1]);
+
             //   Content
             var minAndMaxFont = CairoFont.WhiteDetailText();
-            var minBound = minAndMaxBounds.ForkContainingChild().WithAlignment(EnumDialogArea.LeftMiddle);
-            var maxBound = minAndMaxBounds.ForkContainingChild().WithAlignment(EnumDialogArea.RightMiddle);
-            var minText = new GuiElementStaticText(capi, $"{allTimeMin:F1}", minAndMaxFont.Orientation, minBound, minAndMaxFont);
+            var minBound = minAndMaxBounds.ForkContainingChild(0, -2, 100, 20).WithAlignment(EnumDialogArea.LeftMiddle);
+            var maxBound = minAndMaxBounds.ForkContainingChild(0, -2, 100, 20).WithAlignment(EnumDialogArea.RightMiddle);
+
+            var minFont = minAndMaxFont.Clone();
+            minFont.Orientation = EnumTextOrientation.Left;
+            var minText = new GuiElementStaticText(capi, $"{allTimeMin:F1}°C", minFont.Orientation, minBound, minFont);
             container.Add(minText);
-            var maxText = new GuiElementStaticText(capi, $"{allTimeMax:F1}", minAndMaxFont.Orientation, maxBound, minAndMaxFont);
+
+            var maxFont = minAndMaxFont.Clone();
+            maxFont.Orientation = EnumTextOrientation.Right;
+            var maxText = new GuiElementStaticText(capi, $"{allTimeMax:F1}°C", maxFont.Orientation, maxBound, maxFont);
             container.Add(maxText);
-            minText.AutoBoxSize();
-            maxText.AutoBoxSize();
 
             SingleComposer
                 .EndChildElements()
@@ -159,11 +165,12 @@ namespace AirThermoMod.GUI {
         /// <param name="columnTitles"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
+        //GuiElementContainer CreateTable(string name, object[][] tableSource, int x, int y, int[] columnWidth, int rowHeight, string[]? columnTitles = null)
         GuiElementContainer CreateTable(string name, object[][] tableSource, int x, int y, int[] columnWidth, int rowHeight, string[]? columnTitles = null) {
             var containerBounds = ElementBounds.Fixed(0, 0, 1, 1).WithSizing(ElementSizing.FitToChildren);
             containerBounds.Name = $"table-{name}";
             var container = new GuiElementContainer(capi, containerBounds);
-            var fixedMargin = 10;
+            var fixedMargin = 5;
 
             var titleHeight = 24;
             var titleFont = TableTitleText();
@@ -213,11 +220,18 @@ namespace AirThermoMod.GUI {
                         var cellFont = i == 0 ? fixedCellFont.Clone() : fixedCellFont;
                         container.Bounds.WithChild(cellBounds[i]);
                         var textBounds = cellBounds[i].ForkContainingChild();
-                        var text = new GuiElementStaticText(capi, content, cellFont.Orientation, textBounds, cellFont);
-                        if (i == 1 || i == 2) {
-                            textBounds.Alignment = EnumDialogArea.RightTop;
-                            text.AutoBoxSize();
+
+                        if (i == 0) {
+                            textBounds.Alignment = EnumDialogArea.LeftMiddle;
+                            cellFont.Orientation = EnumTextOrientation.Left;
                         }
+
+                        if (i == 1 || i == 2) {
+                            textBounds.Alignment = EnumDialogArea.CenterMiddle;
+                            cellFont.Orientation = EnumTextOrientation.Center;
+                        }
+
+                        var text = new GuiElementStaticText(capi, content, cellFont.Orientation, textBounds, cellFont);
                         container.Add(text);
                         // TODO: Specify format by args
                         if (i == 0) text.AutoFontSize();
