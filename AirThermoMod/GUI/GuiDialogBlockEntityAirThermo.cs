@@ -116,13 +116,13 @@ namespace AirThermoMod.GUI {
 
             // Min and max temperature over all time (above temperature bars)
             //   Bounds
-            var minAndMaxBounds = ElementBounds.Fixed(0, 0, columnWidth[columnWidth.Length - 1], 20);
+            var minAndMaxBounds = ElementBounds.Fixed(0, 0, columnWidth[columnWidth.Length - 1], 24);
             container.Bounds.WithChild(minAndMaxBounds);
             minAndMaxBounds.RightOf(tableControl.Bounds, -columnWidth[columnWidth.Length - 1]);
             //   Content
             var minAndMaxFont = CairoFont.WhiteDetailText();
-            var minBound = minAndMaxBounds.ForkContainingChild().WithAlignment(EnumDialogArea.LeftMiddle);
-            var maxBound = minAndMaxBounds.ForkContainingChild().WithAlignment(EnumDialogArea.RightMiddle);
+            var minBound = minAndMaxBounds.ForkContainingChild().WithAlignment(EnumDialogArea.LeftBottom);
+            var maxBound = minAndMaxBounds.ForkContainingChild().WithAlignment(EnumDialogArea.RightBottom);
             var minText = new GuiElementStaticText(capi, $"{allTimeMin:F1}", minAndMaxFont.Orientation, minBound, minAndMaxFont);
             container.Add(minText);
             var maxText = new GuiElementStaticText(capi, $"{allTimeMax:F1}", minAndMaxFont.Orientation, maxBound, minAndMaxFont);
