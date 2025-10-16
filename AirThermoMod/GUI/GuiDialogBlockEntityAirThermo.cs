@@ -209,14 +209,15 @@ namespace AirThermoMod.GUI {
             }
             var fixedCellFont = CairoFont.WhiteDetailText();
 
+            var columnFonts = Enumerable.Range(0, columnCount).Select(_ => fixedCellFont.Clone()).ToList();
+            columnFonts[1].WithOrientation(EnumTextOrientation.Right);
+            columnFonts[2].WithOrientation(EnumTextOrientation.Right);
+
             foreach (var row in tableSource) {
                 for (int i = 0; i < columnCount; i++) {
                     if (row[i] is string content) {
                         // TODO: Specify format by args
-                        var cellFont = fixedCellFont.Clone();
-                        if (i == 1 || i == 2) {
-                            cellFont.WithOrientation(EnumTextOrientation.Right);
-                        }
+                        var cellFont = columnFonts[i];
 
                         container.Bounds.WithChild(cellBounds[i]);
                         var textBounds = cellBounds[i].ForkContainingChild();
