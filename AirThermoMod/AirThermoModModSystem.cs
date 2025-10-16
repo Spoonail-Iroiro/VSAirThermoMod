@@ -1,5 +1,6 @@
 ﻿using AirThermoMod.BlockEntities;
 using AirThermoMod.Blocks;
+using AirThermoMod.Common;
 using AirThermoMod.Config;
 using AirThermoMod.Items;
 using Vintagestory.API.Client;
@@ -12,12 +13,21 @@ using Vintagestory.Server;
 namespace AirThermoMod {
     // Main mod system class for Thermometer mod
     public class AirThermoModModSystem : ModSystem {
+
+        ICoreServerAPI? sapi;
+        ICoreClientAPI? capi;
+
+        bool isFahrenheitModEnabled = false;
+
         public AirThermoModConfig? Config { get; private set; }
 
         public AirThermoModClientConfig? ClientConfig { get; private set; }
 
-        ICoreServerAPI? sapi;
-        ICoreClientAPI? capi;
+        public bool IsTemperatureUnitFahrenheit {
+            get {
+                return ClientConfig?.unitSetting == UnitSetting.Fahrenheit || isFahrenheitModEnabled;
+            }
+        }
 
         static string ROOT_COMMAND_NAME = "thermo";
 
@@ -127,11 +137,23 @@ namespace AirThermoMod {
             return TextCommandResult.Success("");
         }
 
-
-
         public string FormatTemperature(double temperature) {
-            return $"{temperature:F1}";
+            var displayTemperature = $"{temperature:F1}";
 
+            if (IsTemperatureUnitFahrenheit) {
+                displayTemperature = $"{TemperatureUtil.ToFahrenheight(temperature):F1}";
+            }
+
+            return displayTemperature;
+        }
+        public string GetTemperatureUnitString() {
+            var unit = "°C";
+
+            if (IsTemperatureUnitFahrenheit) {
+                unit = "°F";
+            }
+
+            return unit;
         }
 
     }
