@@ -93,7 +93,7 @@ namespace AirThermoMod {
                 .RequiresPlayer();
 
             baseCommand.BeginSubCommand("unit")
-                .WithDescription("Pass 'c' or 'f' to specify temperature unit. Pass 'u' to reset to default, which automatically switch temperature unit based on other Fahrenheit unit mod (e.g. FreedomUnits)")
+                .WithDescription("Pass 'c' or 'f' to specify the temperature unit. Pass 'u' to reset to the default, which automatically switches temperature unit based on other Fahrenheit unit mod (e.g. FreedomUnits)")
                 .WithArgs(parsers.OptionalWordRange("unit", ["u", "unspecified", "c", "celsius", "f", "fahrenheit"]))
                 .HandleWith(args => {
                     if (ClientConfig == null) {
