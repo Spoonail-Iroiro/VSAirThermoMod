@@ -213,12 +213,17 @@ namespace AirThermoMod.GUI {
                 for (int i = 0; i < columnCount; i++) {
                     if (row[i] is string content) {
                         // TODO: Specify format by args
-                        var cellFont = i == 0 ? fixedCellFont.Clone() : fixedCellFont;
+                        var cellFont = fixedCellFont.Clone();
+                        if (i == 1 || i == 2) {
+                            cellFont.WithOrientation(EnumTextOrientation.Right);
+                        }
+
                         container.Bounds.WithChild(cellBounds[i]);
                         var textBounds = cellBounds[i].ForkContainingChild();
                         var text = new GuiElementStaticText(capi, content, cellFont.Orientation, textBounds, cellFont);
                         if (i == 1 || i == 2) {
-                            textBounds.Alignment = EnumDialogArea.RightTop;
+                            textBounds.Alignment = EnumDialogArea.RightMiddle;
+                            textBounds.WithFixedAlignmentOffset(-30, 0);
                             text.AutoBoxSize();
                         }
                         container.Add(text);
