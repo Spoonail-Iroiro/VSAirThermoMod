@@ -3,6 +3,7 @@ using AirThermoMod.Blocks;
 using AirThermoMod.Common;
 using AirThermoMod.Config;
 using AirThermoMod.Items;
+using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -25,7 +26,8 @@ namespace AirThermoMod {
 
         public bool IsTemperatureUnitFahrenheit {
             get {
-                return ClientConfig?.unitSetting == UnitSetting.Fahrenheit || isFahrenheitModEnabled;
+                var isUnspecified = ClientConfig == null || ClientConfig.unitSetting == TemperatureUnitSetting.Unspecified;
+                return (isUnspecified && isFahrenheitModEnabled) || ClientConfig?.unitSetting == TemperatureUnitSetting.Fahrenheit;
             }
         }
 
@@ -81,36 +83,47 @@ namespace AirThermoMod {
                 api.StoreModConfig(ClientConfig, configName);
             }
 
+            if (capi.ModLoader.IsModEnabled("freedomunits")) {
+                isFahrenheitModEnabled = true;
+            }
+
             var baseCommand = api.ChatCommands
                 .Create(ROOT_COMMAND_NAME)
                 .RequiresPrivilege(Privilege.chat)
                 .RequiresPlayer();
 
-            baseCommand.BeginSubCommand("fahrenheit")
-                .WithDescription("Display current setting, or set value with passing 'on' or 'off'")
-                .WithArgs(parsers.OptionalWord("on_or_off"))
+            baseCommand.BeginSubCommand("unit")
+                .WithDescription("Pass 'c' or 'f' to specify temperature unit. Pass 'u' to reset to default, which automatically switch temperature unit based on other Fahrenheit unit mod (e.g. FreedomUnits)")
+                .WithArgs(parsers.OptionalWordRange("unit", ["u", "unspecified", "c", "celsius", "f", "fahrenheit"]))
                 .HandleWith(args => {
                     if (ClientConfig == null) {
                         return TextCommandResult.Error($"Can't change client config");
                     }
+                    var resultSB = new StringBuilder();
 
-                    var onOrOff = (string)args.Parsers[0].GetValue();
+                    var specifiedUnit = (string)args.Parsers[0].GetValue();
 
-                    if (onOrOff == null) {
-                    }
-                    else if (onOrOff == "on") {
-                        ClientConfig.unitSetting = UnitSetting.Fahrenheit;
-                        capi.StoreModConfig(ClientConfig, configName);
-                    }
-                    else if (onOrOff == "off") {
-                        ClientConfig.unitSetting = UnitSetting.Celsius;
-                        capi.StoreModConfig(ClientConfig, configName);
-                    }
-                    else {
-                        return TextCommandResult.Error($"Unrecognized argument");
+                    if (specifiedUnit != null) {
+                        if (AirThermoModClientConfig.TryParseTemperatureUnitSetting(specifiedUnit, out TemperatureUnitSetting unitSetting)) {
+                            ClientConfig.unitSetting = unitSetting;
+                            capi.StoreModConfig(ClientConfig, configName);
+                        }
+                        else {
+                            return TextCommandResult.Error($"Unrecognized argument");
+                        }
                     }
 
-                    return TextCommandResult.Success($"Current unit setting: {ClientConfig.unitSetting}");
+                    resultSB.AppendLine($"Current unit setting: {ClientConfig.unitSetting}");
+                    if (ClientConfig.unitSetting == TemperatureUnitSetting.Unspecified) {
+                        if (IsTemperatureUnitFahrenheit) {
+                            resultSB.AppendLine("Will use Fahrenheit since a Fahrenheit unit mod (e.g. FreedomUnits) is enabled");
+                        }
+                        else {
+                            resultSB.AppendLine("Will use Celsius since no Fahrenheit unit mod (e.g. FreedomUnits) is active");
+                        }
+                    }
+
+                    return TextCommandResult.Success(resultSB.ToString());
 
                 });
         }
