@@ -51,7 +51,7 @@ namespace AirThermoMod.GUI {
             var controlAreaBounds = ElementBounds.Fixed(0, GuiStyle.TitleBarHeight, 10, 30).WithSizing(ElementSizing.FitToChildren, ElementSizing.FitToChildren);
             bgBounds.WithChildren(controlAreaBounds);
 
-            var reverseOrderbuttonBounds = ElementBounds.Fixed(175 - 40, 0, 120, 25);
+            var reverseOrderbuttonBounds = ElementBounds.Fixed(480 / 2 - 60, 0, 120, 25);
             controlAreaBounds.WithChildren(reverseOrderbuttonBounds);
             var reverseOrderButton = new GuiElementTextButton(capi, "Reverse order", CairoFont.WhiteSmallText(), CairoFont.WhiteSmallText(), OnReverseOrderButtonClicked, reverseOrderbuttonBounds);
 
