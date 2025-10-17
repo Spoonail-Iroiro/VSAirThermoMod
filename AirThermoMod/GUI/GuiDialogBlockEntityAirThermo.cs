@@ -39,6 +39,8 @@ namespace AirThermoMod.GUI {
         }
 
         public void SetupDialog(List<TemperatureSample> samples, string order) {
+            var mod = capi.ModLoader.GetModSystem<AirThermoModModSystem>();
+
             var dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
 
             var bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
@@ -49,7 +51,7 @@ namespace AirThermoMod.GUI {
             var controlAreaBounds = ElementBounds.Fixed(0, GuiStyle.TitleBarHeight, 10, 30).WithSizing(ElementSizing.FitToChildren, ElementSizing.FitToChildren);
             bgBounds.WithChildren(controlAreaBounds);
 
-            var reverseOrderbuttonBounds = ElementBounds.Fixed(0, 0, 120, 25);
+            var reverseOrderbuttonBounds = ElementBounds.Fixed(480 / 2 - 60, 0, 120, 25);
             controlAreaBounds.WithChildren(reverseOrderbuttonBounds);
             var reverseOrderButton = new GuiElementTextButton(capi, "Reverse order", CairoFont.WhiteSmallText(), CairoFont.WhiteSmallText(), OnReverseOrderButtonClicked, reverseOrderbuttonBounds);
 
@@ -80,7 +82,6 @@ namespace AirThermoMod.GUI {
                     .EndClip()
                     .AddVerticalScrollbar(OnNewScrollbarvalue, scrollBarBounds, "scroll-bar");
 
-
             // Initialize temperature stats calculator with world time scale
             var statsCalc = new TemperatureStats(
                 new Common.VSTimeScale { DaysPerMonth = capi.World.Calendar.DaysPerMonth, HoursPerDay = capi.World.Calendar.HoursPerDay }
@@ -92,12 +93,14 @@ namespace AirThermoMod.GUI {
             double allTimeMax = dailyMinAndMax.Select(stat => (double?)stat.Max).Max() ?? 1;
             // Prepare data for the table
             var table = dailyMinAndMax
-                .Select(stat => new object[] { TimeUtil.VSDateTimeToYearMonthDay(stat.DateTime), $"{stat.Min:F1}", $"{stat.Max:F1}", new BarValue(stat.RateMin, stat.RateMax) })
+                .Select(stat => new object[] { TimeUtil.VSDateTimeToYearMonthDay(stat.DateTime), mod.FormatTemperature(stat.Min), mod.FormatTemperature(stat.Max), new BarValue(stat.RateMin, stat.RateMax) })
                 .ToArray();
 
+            var unit = mod.GetTemperatureUnitString();
+
             // Some style settings
-            var columnWidth = new int[] { 150, 50, 50, 100 };
-            var tableTitle = new string[] { "Date", "Min", "Max", "" };
+            var columnWidth = new int[] { 150, 90, 90, 120 };
+            var tableTitle = new string[] { "Date", $"Min [{unit}]", $"Max [{unit}]", "" };
 
             var container = SingleComposer.GetContainer("scroll-content");
 
@@ -116,16 +119,16 @@ namespace AirThermoMod.GUI {
 
             // Min and max temperature over all time (above temperature bars)
             //   Bounds
-            var minAndMaxBounds = ElementBounds.Fixed(0, 0, columnWidth[columnWidth.Length - 1], 20);
+            var minAndMaxBounds = ElementBounds.Fixed(0, 0, columnWidth[columnWidth.Length - 1], 24);
             container.Bounds.WithChild(minAndMaxBounds);
             minAndMaxBounds.RightOf(tableControl.Bounds, -columnWidth[columnWidth.Length - 1]);
             //   Content
             var minAndMaxFont = CairoFont.WhiteDetailText();
-            var minBound = minAndMaxBounds.ForkContainingChild().WithAlignment(EnumDialogArea.LeftMiddle);
-            var maxBound = minAndMaxBounds.ForkContainingChild().WithAlignment(EnumDialogArea.RightMiddle);
-            var minText = new GuiElementStaticText(capi, $"{allTimeMin:F1}", minAndMaxFont.Orientation, minBound, minAndMaxFont);
+            var minBound = minAndMaxBounds.ForkContainingChild().WithAlignment(EnumDialogArea.LeftBottom);
+            var maxBound = minAndMaxBounds.ForkContainingChild().WithAlignment(EnumDialogArea.RightBottom);
+            var minText = new GuiElementStaticText(capi, mod.FormatTemperature(allTimeMin), minAndMaxFont.Orientation, minBound, minAndMaxFont);
             container.Add(minText);
-            var maxText = new GuiElementStaticText(capi, $"{allTimeMax:F1}", minAndMaxFont.Orientation, maxBound, minAndMaxFont);
+            var maxText = new GuiElementStaticText(capi, mod.FormatTemperature(allTimeMax), minAndMaxFont.Orientation, maxBound, minAndMaxFont);
             container.Add(maxText);
             minText.AutoBoxSize();
             maxText.AutoBoxSize();
@@ -206,16 +209,22 @@ namespace AirThermoMod.GUI {
             }
             var fixedCellFont = CairoFont.WhiteDetailText();
 
+            var columnFonts = Enumerable.Range(0, columnCount).Select(_ => fixedCellFont.Clone()).ToList();
+            columnFonts[1].WithOrientation(EnumTextOrientation.Right);
+            columnFonts[2].WithOrientation(EnumTextOrientation.Right);
+
             foreach (var row in tableSource) {
                 for (int i = 0; i < columnCount; i++) {
                     if (row[i] is string content) {
                         // TODO: Specify format by args
-                        var cellFont = i == 0 ? fixedCellFont.Clone() : fixedCellFont;
+                        var cellFont = columnFonts[i];
+
                         container.Bounds.WithChild(cellBounds[i]);
                         var textBounds = cellBounds[i].ForkContainingChild();
                         var text = new GuiElementStaticText(capi, content, cellFont.Orientation, textBounds, cellFont);
                         if (i == 1 || i == 2) {
-                            textBounds.Alignment = EnumDialogArea.RightTop;
+                            textBounds.Alignment = EnumDialogArea.RightMiddle;
+                            textBounds.WithFixedAlignmentOffset(-30, 0);
                             text.AutoBoxSize();
                         }
                         container.Add(text);
