@@ -75,8 +75,11 @@ namespace AirThermoMod.Tests {
 
         [TestMethod]
         public void TreeAttributeTest2() {
-            var ta = new TreeAttribute();
-            ta.SetDouble("hoge", 5.0);
+            var val = -3.8545;
+            Console.WriteLine($"{val}");
+            Console.WriteLine($"{TemperatureUtil.ToFahrenheight(val)}");
+            Console.WriteLine($"{val:F1}");
+            Console.WriteLine($"{TemperatureUtil.ToFahrenheight(val):F1}");
         }
     }
 }
