@@ -33,35 +33,167 @@ namespace AirThermoMod.GUI {
         public ContainerDialogController? DialogController { get; private set; }
         double scrollBarContentFixedY;
 
+        AirThermoModModSystem mod;
+
         /// <summary>
         /// Event triggered when 'Reverse Order' button is clicked
         /// </summary>
         public Func<bool>? ReverseOrderButtonClicked { get; set; }
 
         public GuiDialogBlockEntityAirThermo(string dialogTitle, BlockPos blockEntityPos, ICoreClientAPI capi, List<TemperatureSample> samples, string order) : base(dialogTitle, blockEntityPos, capi) {
+            mod = capi.ModLoader.GetModSystem<AirThermoModModSystem>();
             if (IsDuplicate) return;
 
             SetupDialog(samples, order);
         }
 
-        public LayoutWithElementBounds GetTableLayout(List<TemperatureSample> samples, string order) {
-            var containerLayout = new VerticalLayout(capi)
+        public LayoutWithElementBounds CreateTableLayout(
+                object[][] tableSource,
+                int[] columnWidthes,
+                int rowHeight,
+                string[] columnTitles
+            ) {
+            var tableTitleFont = CairoFont.WhiteSmallText()
+                .WithWeight(Cairo.FontWeight.Bold)
+                .WithOrientation(EnumTextOrientation.Center);
+
+            var titleRow = new HorizontalLayout(capi);
+
+            foreach (var (colWidth, columnTitle) in Enumerable.Zip(columnWidthes, columnTitles)) {
+                var element = new MNGuiElementStaticText(
+                        capi,
+                        columnTitle,
+                        ElementBounds.FixedSize(colWidth, 24), font: tableTitleFont,
+                        orientation: tableTitleFont.Orientation
+                    );
+                //var element = new GuiElementStaticText(capi, columnTitle, tableTitleFont.Orientation, ElementBounds.FixedSize(colWidth, 24), font: tableTitleFont);
+                titleRow.Add(element);
+            }
+
+            var columnCount = tableSource[0].Length;
+
+
+            // To achieve center-aligned <right-aligned digit column>, here's a bit tricky approach
+            // Create a vertical layout (innerColumnLayouts) containing all cells in a column, then
+            // put it into another VerticalLayout (contentColumnLayout)
+            // So, usually table is rows of cells, but this table is columns of cells
+            var innerColumnLayouts = Enumerable.Range(0, columnCount)
+                .Select(i => new VerticalLayout(capi)
+                    // Horizontal is MinSize, to make the width max width of all cell in the column
+                    .WithHorizontalSizePolicy(SizePolicy.MinSize)
+                    .WithAlignment(
+                        i switch {
+                            1 => HorizontalAlignment.Right,
+                            2 => HorizontalAlignment.Right,
+                            _ => HorizontalAlignment.Left
+                        }
+                    )
+                )
+                .ToList();
+
+            // Creates each column
+            foreach (var row in tableSource) {
+                for (var index = 0; index < row.Length; ++index) {
+                    var target = row[index];
+                    var targetInnerColumnLayout = innerColumnLayouts[index];
+                    var columnWidth = columnWidthes[index];
+
+                    if (target is string text) {
+                        var element = new MNGuiElementStaticText(
+                                capi,
+                                text,
+                                ElementBounds.FixedSize(columnWidth, rowHeight),
+                                CairoFont.WhiteDetailText(),
+                                EnumTextOrientation.Left
+                            );
+                        if (index == 0) {
+                            element.WithAutoFontSize();
+                        }
+                        else {
+                            element.WithAutoBoxSize();
+                            //element.Bounds.WithFixedHeight(rowHeight);
+                        }
+                        targetInnerColumnLayout.Add(element);
+                    }
+                    else if (target is BarValue bv) {
+                        var element = new GuiElementBar(capi, bv.Start, bv.End, ElementBounds.FixedSize(columnWidth, rowHeight), GuiStyle.FoodBarColor);
+                        targetInnerColumnLayout.Add(element);
+                    }
+                    else {
+                        throw new Exception($"Unsupported table content");
+                    }
+                }
+            }
+
+            var mainHorizontalLayout = new HorizontalLayout(capi);
+
+            foreach (var (innerColumnLayout, columnWidth) in Enumerable.Zip(innerColumnLayouts, columnWidthes)) {
+                // Put the column into Outer VerticalLayout, and add it to the main HorizontalLayout
+                var contentColumnLayout = new VerticalLayout(capi)
+                    .WithAlignment(horizontalAlignment: HorizontalAlignment.Center)
+                    .Add(
+                        new GuiElementDummy(capi, ElementBounds.FixedSize(columnWidth, 1))
+                    )
+                    .Add(
+                        innerColumnLayout.ChildLayouts.Count > 0 ?
+                            innerColumnLayout :
+                            new ElementLayout(new GuiElementDummy(capi, ElementBounds.FixedSize(1, 1)))
+                    );
+
+                mainHorizontalLayout.Add(contentColumnLayout);
+            }
+
+            var tableLayout = new VerticalLayout(capi)
                 .Add(
-                    new HorizontalLayout(capi)
-                        .Add(
-                            new MNGuiElementStaticText(capi, "Test", ElementBounds.FixedSize(500, 100), backgroundColorRGBA: new(1.0, 1.0, 1.0, 0.2))
-                        )
+                    titleRow
+                )
+                .Add(
+                    mainHorizontalLayout
                 );
 
-            return containerLayout;
+            return tableLayout;
         }
 
-        public LayoutWithElementBounds SetupLayout(List<TemperatureSample> samples, string order) {
+        public LayoutWithElementBounds GetTableLayout(List<TemperatureSample> samples, string order) {
+            // Initialize temperature stats calculator with world time scale
+            var statsCalc = new TemperatureStats(
+                new Common.VSTimeScale { DaysPerMonth = capi.World.Calendar.DaysPerMonth, HoursPerDay = capi.World.Calendar.HoursPerDay }
+            );
+            // Calculate daily min and max temperature
+            var dailyMinAndMax = statsCalc.DailyMinAndMax(samples, order);
+            // Determine overall min and max temperatures to show above the temperature bars
+            double allTimeMin = dailyMinAndMax.Select(stat => (double?)stat.Min).Min() ?? 0;
+            double allTimeMax = dailyMinAndMax.Select(stat => (double?)stat.Max).Max() ?? 1;
+            // Prepare data for the table
+            var table = dailyMinAndMax
+                .Select(stat => new object[] { TimeUtil.VSDateTimeToYearMonthDay(stat.DateTime), mod.FormatTemperature(stat.Min), mod.FormatTemperature(stat.Max), new BarValue(stat.RateMin, stat.RateMax) })
+                .ToArray();
+
+            var unit = mod.GetTemperatureUnitString();
+
+            // Some style settings
+            var columnWidth = new int[] { 150, 90, 90, 120 };
+            var tableTitle = new string[] { "Date", $"Min [{unit}]", $"Max [{unit}]", "" };
+
+            var container = SingleComposer.GetContainer("scroll-content");
+
+            // Get table as container element
+            var tableLayout = CreateTableLayout(
+                    table,
+                    columnWidth,
+                    20,
+                    tableTitle
+                );
+
+            return tableLayout;
+        }
+
+        public LayoutWithElementBounds SetupLayout() {
             var layoutBuilder = new InsetContainerLayoutBuilder(capi, "container-table")
                 .WithSizeFitToChildren(BoxSide.Horizontal)
                 .WithSizeFixed(BoxSide.Vertical, 400)
-                .WithInset(false)
-                .WithInitialLayout(GetTableLayout(samples, order));
+                .WithInset(false);
+            //.WithInitialLayout(GetTableLayout(samples, order));
 
             var mainLayout = new VerticalLayout(capi)
                 .Add(
@@ -80,13 +212,21 @@ namespace AirThermoMod.GUI {
 
         public void SetupDialog(List<TemperatureSample> samples, string order) {
             var dialogBuilder = new ContainerDialogBuilder();
-            var mainLayout = SetupLayout(samples, order);
+            var mainLayout = SetupLayout();
             dialogBuilder.SetChildLayout(mainLayout);
 
             ClearComposers();
             SingleComposer = dialogBuilder.Layout(capi, this);
 
             DialogController = new ContainerDialogController(capi, SingleComposer, mainLayout);
+
+            var tableContainer = DialogController.GetElement<MNGuiElementInnerLayoutContainer>("container-table");
+            if (tableContainer == null) throw new InvalidOperationException("Couldn't find container-table!");
+
+            var tableLayout = GetTableLayout(samples, order);
+
+            tableContainer.ApplyNewLayoutImmediately(tableLayout);
+
         }
 
         public void _SetupDialog(List<TemperatureSample> samples, string order) {
