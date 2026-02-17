@@ -12,6 +12,11 @@ using Vintagestory.API.Server;
 using Vintagestory.Client.NoObf;
 using Vintagestory.GameContent;
 using Vintagestory.Server;
+using MNGui.GuiElements;
+using MNGui.Layouts;
+using MNGui.Layouts.Extensions;
+using MNGui.Std;
+using MNGui.DialogBuilders;
 
 namespace AirThermoMod.GUI {
     /// <summary>
@@ -25,6 +30,7 @@ namespace AirThermoMod.GUI {
     /// GUI dialog class opened on interacting with thermometer block
     /// </summary>
     internal class GuiDialogBlockEntityAirThermo : GuiDialogBlockEntity {
+        public ContainerDialogController? DialogController { get; private set; }
         double scrollBarContentFixedY;
 
         /// <summary>
@@ -38,7 +44,52 @@ namespace AirThermoMod.GUI {
             SetupDialog(samples, order);
         }
 
+        public LayoutWithElementBounds GetTableLayout(List<TemperatureSample> samples, string order) {
+            var containerLayout = new VerticalLayout(capi)
+                .Add(
+                    new HorizontalLayout(capi)
+                        .Add(
+                            new MNGuiElementStaticText(capi, "Test", ElementBounds.FixedSize(500, 100), backgroundColorRGBA: new(1.0, 1.0, 1.0, 0.2))
+                        )
+                );
+
+            return containerLayout;
+        }
+
+        public LayoutWithElementBounds SetupLayout(List<TemperatureSample> samples, string order) {
+            var layoutBuilder = new InsetContainerLayoutBuilder(capi, "container-table")
+                .WithSizeFitToChildren(BoxSide.Horizontal)
+                .WithSizeFixed(BoxSide.Vertical, 400)
+                .WithInset(false)
+                .WithInitialLayout(GetTableLayout(samples, order));
+
+            var mainLayout = new VerticalLayout(capi)
+                .Add(
+                    // Control area
+                    new HorizontalLayout(capi, hAlign: HorizontalAlignment.Center)
+                        .Add(
+                            new MNGuiElementTextButton(capi, "Reverse order", ElementBounds.FixedSize(120, 25), font: CairoFont.WhiteSmallText())
+                        )
+                )
+                .Add(
+                    layoutBuilder.Build()
+                );
+
+            return mainLayout;
+        }
+
         public void SetupDialog(List<TemperatureSample> samples, string order) {
+            var dialogBuilder = new ContainerDialogBuilder();
+            var mainLayout = SetupLayout(samples, order);
+            dialogBuilder.SetChildLayout(mainLayout);
+
+            ClearComposers();
+            SingleComposer = dialogBuilder.Layout(capi, this);
+
+            DialogController = new ContainerDialogController(capi, SingleComposer, mainLayout);
+        }
+
+        public void _SetupDialog(List<TemperatureSample> samples, string order) {
             var mod = capi.ModLoader.GetModSystem<AirThermoModModSystem>();
 
             var dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
