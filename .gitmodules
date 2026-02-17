@@ -1,0 +1,3 @@
+[submodule "AirThermoMod/MNGui"]
+	path = AirThermoMod/MNGui
+	url = https://github.com/Spoonail-Iroiro/MNGUI.git
