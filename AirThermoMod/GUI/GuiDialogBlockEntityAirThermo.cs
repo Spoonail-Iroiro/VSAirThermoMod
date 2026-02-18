@@ -253,7 +253,8 @@ namespace AirThermoMod.GUI {
                     // Control area
                     new HorizontalLayout(capi, hAlign: AlignmentHorizontal.Center)
                         .Add(
-                            new MNGuiElementTextButton(capi, "Reverse order", ElementBounds.FixedSize(120, 25), font: CairoFont.WhiteSmallText())
+                            new MNGuiElementTextButton(capi, "Reverse order", ElementBounds.FixedSize(120, 25), font: CairoFont.WhiteSmallText()),
+                            "button-reverseorder"
                         )
                 )
                 .Add(
@@ -280,6 +281,19 @@ namespace AirThermoMod.GUI {
 
             tableContainer.ApplyNewLayoutImmediately(tableLayout);
 
+            var reverseOrderButton = DialogController.GetElement<MNGuiElementTextButton>("button-reverseorder");
+            if (reverseOrderButton == null) throw new InvalidOperationException("Couldn't find button-reverse!");
+            reverseOrderButton.EventClicked = OnReverseOrderButtonClicked;
+        }
+
+        public void UpdateTable(List<TemperatureSample> samples, string order) {
+            if (!IsOpened()) return;
+            var tableContainer = DialogController?.GetElement<MNGuiElementInnerLayoutContainer>("container-table");
+            if (tableContainer == null) throw new InvalidOperationException("Couldn't find container-table!");
+
+            var tableLayout = GetTableLayout(samples, order);
+
+            tableContainer.SetNewLayout(tableLayout);
         }
 
         public void _SetupDialog(List<TemperatureSample> samples, string order) {
