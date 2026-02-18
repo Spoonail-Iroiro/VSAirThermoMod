@@ -17,6 +17,8 @@ using MNGui.Layouts;
 using MNGui.Layouts.Extensions;
 using MNGui.Std;
 using MNGui.DialogBuilders;
+using Vintagestory.ServerMods;
+using MNGui.Extensions;
 
 namespace AirThermoMod.GUI {
     /// <summary>
@@ -35,6 +37,8 @@ namespace AirThermoMod.GUI {
 
         AirThermoModModSystem mod;
 
+        const int tableHorizontalGap = 10;
+
         /// <summary>
         /// Event triggered when 'Reverse Order' button is clicked
         /// </summary>
@@ -47,31 +51,16 @@ namespace AirThermoMod.GUI {
             SetupDialog(samples, order);
         }
 
-        public LayoutWithElementBounds CreateTableLayout(
+        public LayoutWithElementBounds CreateTableBody(
                 object[][] tableSource,
                 int[] columnWidthes,
-                int rowHeight,
-                string[] columnTitles
+                int rowHeight
             ) {
-            var tableTitleFont = CairoFont.WhiteSmallText()
-                .WithWeight(Cairo.FontWeight.Bold)
-                .WithOrientation(EnumTextOrientation.Center);
-
-            var titleRow = new HorizontalLayout(capi);
-
-            foreach (var (colWidth, columnTitle) in Enumerable.Zip(columnWidthes, columnTitles)) {
-                var element = new MNGuiElementStaticText(
-                        capi,
-                        columnTitle,
-                        ElementBounds.FixedSize(colWidth, 24), font: tableTitleFont,
-                        orientation: tableTitleFont.Orientation
-                    );
-                //var element = new GuiElementStaticText(capi, columnTitle, tableTitleFont.Orientation, ElementBounds.FixedSize(colWidth, 24), font: tableTitleFont);
-                titleRow.Add(element);
+            if (tableSource.Length == 0) {
+                return new ElementLayout(new GuiElementDummy(capi, ElementBounds.FixedSize(1, 1)));
             }
 
-            var columnCount = tableSource[0].Length;
-
+            var columnCount = columnWidthes.Length;
 
             // To achieve center-aligned <right-aligned digit column>, here's a bit tricky approach
             // Create a vertical layout (innerColumnLayouts) containing all cells in a column, then
@@ -83,9 +72,9 @@ namespace AirThermoMod.GUI {
                     .WithHorizontalSizePolicy(SizePolicy.MinSize)
                     .WithAlignment(
                         i switch {
-                            1 => HorizontalAlignment.Right,
-                            2 => HorizontalAlignment.Right,
-                            _ => HorizontalAlignment.Left
+                            1 => AlignmentHorizontal.Right,
+                            2 => AlignmentHorizontal.Right,
+                            _ => AlignmentHorizontal.Left
                         }
                     )
                 )
@@ -108,12 +97,22 @@ namespace AirThermoMod.GUI {
                             );
                         if (index == 0) {
                             element.WithAutoFontSize();
+                            targetInnerColumnLayout.Add(element);
                         }
                         else {
                             element.WithAutoBoxSize();
+                            // Needs "cell" layout to align vertical (very slight difference though)
+                            var cell = new HorizontalLayout(capi)
+                                    .WithAlignment(vAlign: AlignmentVertical.Middle)
+                                    .WithHorizontalSizePolicy(SizePolicy.MinSize)
+                                    .WithFixedSize(height: rowHeight)
+                                    .Add(element);
+                            //new WrapperElementLayout(new GuiElementDummy(capi, ElementBounds.FixedSize(10, rowHeight).WithHorizontalSizing(ElementSizing.FitToChildren)))
+                            //.Add(
+                            //);
                             //element.Bounds.WithFixedHeight(rowHeight);
+                            targetInnerColumnLayout.Add(cell);
                         }
-                        targetInnerColumnLayout.Add(element);
                     }
                     else if (target is BarValue bv) {
                         var element = new GuiElementBar(capi, bv.Start, bv.End, ElementBounds.FixedSize(columnWidth, rowHeight), GuiStyle.FoodBarColor);
@@ -125,30 +124,60 @@ namespace AirThermoMod.GUI {
                 }
             }
 
-            var mainHorizontalLayout = new HorizontalLayout(capi);
+            var bodyLayout = new HorizontalLayout(capi, tableHorizontalGap);
 
             foreach (var (innerColumnLayout, columnWidth) in Enumerable.Zip(innerColumnLayouts, columnWidthes)) {
                 // Put the column into Outer VerticalLayout, and add it to the main HorizontalLayout
                 var contentColumnLayout = new VerticalLayout(capi)
-                    .WithAlignment(horizontalAlignment: HorizontalAlignment.Center)
-                    .Add(
-                        new GuiElementDummy(capi, ElementBounds.FixedSize(columnWidth, 1))
-                    )
+                    .WithAlignment(hAlign: AlignmentHorizontal.Center)
+                    .WithFixedSize(width: columnWidth)
+                    //.Add(
+                    //    new GuiElementDummy(capi, ElementBounds.FixedSize(columnWidth, 1))
+                    //)
                     .Add(
                         innerColumnLayout.ChildLayouts.Count > 0 ?
                             innerColumnLayout :
                             new ElementLayout(new GuiElementDummy(capi, ElementBounds.FixedSize(1, 1)))
                     );
 
-                mainHorizontalLayout.Add(contentColumnLayout);
+                bodyLayout.Add(contentColumnLayout);
             }
+
+            return bodyLayout;
+        }
+
+        public LayoutWithElementBounds CreateTableLayout(
+                object[][] tableSource,
+                int[] columnWidthes,
+                int rowHeight,
+                string[] columnTitles
+            ) {
+            var tableTitleFont = CairoFont.WhiteSmallText()
+                .WithWeight(Cairo.FontWeight.Bold)
+                .WithOrientation(EnumTextOrientation.Center);
+
+            var titleRow = new HorizontalLayout(capi, tableHorizontalGap);
+
+            foreach (var (colWidth, columnTitle) in Enumerable.Zip(columnWidthes, columnTitles)) {
+                var element = new MNGuiElementStaticText(
+                        capi,
+                        columnTitle,
+                        ElementBounds.FixedSize(colWidth, 24),
+                        font: tableTitleFont,
+                        orientation: tableTitleFont.Orientation
+                    );
+                //var element = new GuiElementStaticText(capi, columnTitle, tableTitleFont.Orientation, ElementBounds.FixedSize(colWidth, 24), font: tableTitleFont);
+                titleRow.Add(element);
+            }
+
+            var bodyLayout = CreateTableBody(tableSource, columnWidthes, rowHeight);
 
             var tableLayout = new VerticalLayout(capi)
                 .Add(
                     titleRow
                 )
                 .Add(
-                    mainHorizontalLayout
+                    bodyLayout
                 );
 
             return tableLayout;
@@ -195,10 +224,10 @@ namespace AirThermoMod.GUI {
                 .WithInset(false);
             //.WithInitialLayout(GetTableLayout(samples, order));
 
-            var mainLayout = new VerticalLayout(capi)
+            var mainLayout = new VerticalLayout(capi, 10)
                 .Add(
                     // Control area
-                    new HorizontalLayout(capi, hAlign: HorizontalAlignment.Center)
+                    new HorizontalLayout(capi, hAlign: AlignmentHorizontal.Center)
                         .Add(
                             new MNGuiElementTextButton(capi, "Reverse order", ElementBounds.FixedSize(120, 25), font: CairoFont.WhiteSmallText())
                         )
