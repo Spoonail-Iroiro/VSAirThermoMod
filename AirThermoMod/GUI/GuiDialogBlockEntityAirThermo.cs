@@ -150,24 +150,46 @@ namespace AirThermoMod.GUI {
                 object[][] tableSource,
                 int[] columnWidthes,
                 int rowHeight,
-                string[] columnTitles
+                string[] columnTitles,
+                string allTimeMinStr,
+                string allTimeMaxStr
             ) {
+            var elementStd = new ElementStd(capi);
             var tableTitleFont = CairoFont.WhiteSmallText()
                 .WithWeight(Cairo.FontWeight.Bold)
                 .WithOrientation(EnumTextOrientation.Center);
 
             var titleRow = new HorizontalLayout(capi, tableHorizontalGap);
 
-            foreach (var (colWidth, columnTitle) in Enumerable.Zip(columnWidthes, columnTitles)) {
-                var element = new MNGuiElementStaticText(
-                        capi,
-                        columnTitle,
-                        ElementBounds.FixedSize(colWidth, 24),
-                        font: tableTitleFont,
-                        orientation: tableTitleFont.Orientation
-                    );
-                //var element = new GuiElementStaticText(capi, columnTitle, tableTitleFont.Orientation, ElementBounds.FixedSize(colWidth, 24), font: tableTitleFont);
-                titleRow.Add(element);
+            var titleRowHeight = 24;
+            for (var i = 0; i < columnWidthes.Length; i++) {
+                var columnTitle = columnTitles[i];
+                var columnWidth = columnWidthes[i];
+                if (i < columnWidthes.Length - 1) {
+                    // Not last column
+                    var element = new MNGuiElementStaticText(
+                            capi,
+                            columnTitle,
+                            ElementBounds.FixedSize(columnWidth, titleRowHeight),
+                            font: tableTitleFont,
+                            orientation: tableTitleFont.Orientation
+                        );
+                    //var element = new GuiElementStaticText(capi, columnTitle, tableTitleFont.Orientation, ElementBounds.FixedSize(colWidth, 24), font: tableTitleFont);
+                    titleRow.Add(element);
+                }
+                else {
+                    // Last column - shows min/max temp over retention period
+                    var layout = new HorizontalLayout(capi)
+                        .WithFixedSize(columnWidth, titleRowHeight)
+                        .WithAlignment(vAlign: AlignmentVertical.Bottom)
+                        .Add(elementStd.TextAutoBoxSize(allTimeMinStr))
+                        .Add(
+                            new ElementLayout(new GuiElementDummy(capi, ElementBounds.FixedSize(1, 1)))
+                                .WithHorizontalSizePolicy(SizePolicy.Stretch)
+                        )
+                        .Add(elementStd.TextAutoBoxSize(allTimeMaxStr));
+                    titleRow.Add(layout);
+                }
             }
 
             var bodyLayout = CreateTableBody(tableSource, columnWidthes, rowHeight);
@@ -211,7 +233,9 @@ namespace AirThermoMod.GUI {
                     table,
                     columnWidth,
                     20,
-                    tableTitle
+                    tableTitle,
+                    mod.FormatTemperature(allTimeMin),
+                    mod.FormatTemperature(allTimeMax)
                 );
 
             return tableLayout;
