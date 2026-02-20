@@ -91,11 +91,10 @@ namespace AirThermoMod.GUI {
                                 capi,
                                 text,
                                 ElementBounds.FixedSize(columnWidth, rowHeight),
-                                CairoFont.WhiteDetailText(),
-                                EnumTextOrientation.Left
+                                font: CairoFont.WhiteDetailText(),
+                                autoWrap: false
                             );
                         if (index == 0) {
-                            element.WithAutoFontSize();
                             targetInnerColumnLayout.Add(element);
                         }
                         else {
