@@ -11,7 +11,7 @@ namespace AirThermoMod.Items {
             base.GetHeldItemInfo(inSlot, dsc, world, withDebugInfo);
             var srcPos = inSlot.Itemstack.Attributes.GetBlockPos("srcpos");
             if (srcPos != null) {
-                dsc.AppendLine(Lang.Get(TrUtil.LocalKey("src-pos-info"), Math.Floor(srcPos.X - api.World.DefaultSpawnPosition.X) + 1, srcPos.Y, Math.Floor(srcPos.Z - api.World.DefaultSpawnPosition.Z) + 1));
+                dsc.AppendLine(Lang.Get(TrUtil.LK("src-pos-info"), Math.Floor(srcPos.X - api.World.DefaultSpawnPosition.X) + 1, srcPos.Y, Math.Floor(srcPos.Z - api.World.DefaultSpawnPosition.Z) + 1));
             }
             else {
             }

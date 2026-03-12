@@ -174,7 +174,7 @@ namespace AirThermoMod.Common {
         }
 
         public static string VSDateTimeToYearMonthDay(VSDateTime dt) {
-            return Lang.Get("airthermomod:year-month-day", dt.Day, Lang.Get("month-" + dt.MonthName), dt.Year.ToString("0"));
+            return Lang.Get(TrUtil.LK("year-month-day"), dt.Day, Lang.Get("month-" + dt.MonthName), dt.Year.ToString("0"));
         }
 
 

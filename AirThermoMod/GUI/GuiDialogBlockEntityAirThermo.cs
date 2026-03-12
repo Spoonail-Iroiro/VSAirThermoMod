@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.Client;
+using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 
 namespace AirThermoMod.GUI {
@@ -205,7 +206,13 @@ namespace AirThermoMod.GUI {
 
             // Some style settings
             var columnWidth = new int[] { 150, 90, 90, 120 };
-            var tableTitle = new string[] { "Date", $"Min [{unit}]", $"Max [{unit}]", "" };
+            var tableTitle = new string[]
+            {
+                Lang.Get(TrUtil.LK("temperaturetable-column-date")),
+                Lang.Get(TrUtil.LK("temperaturetable-column-mintemperature"), unit),
+                Lang.Get(TrUtil.LK("temperaturetable-column-maxtemperature"), unit),
+                ""
+            };
 
             var container = SingleComposer.GetContainer("scroll-content");
 
@@ -233,7 +240,7 @@ namespace AirThermoMod.GUI {
                     // Control area
                     new HorizontalLayout(capi, hAlign: AlignmentHorizontal.Center)
                         .Add(
-                            new MNGuiElementTextButton(capi, "Reverse order", ElementBounds.FixedSize(120, 25), font: CairoFont.WhiteSmallText()),
+                            new MNGuiElementTextButton(capi, Lang.Get(TrUtil.LK("temperaturetable-control-reverseorder")), ElementBounds.FixedSize(120, 25), font: CairoFont.WhiteSmallText()),
                             "button-reverseorder"
                         )
                 )
