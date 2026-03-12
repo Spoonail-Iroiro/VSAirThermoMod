@@ -6,10 +6,7 @@ using AirThermoMod.Items;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
-using Vintagestory.API.Config;
 using Vintagestory.API.Server;
-using Vintagestory.Client.NoObf;
-using Vintagestory.Server;
 
 namespace AirThermoMod {
     // Main mod system class for Thermometer mod

@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AirThermoMod.Core {
     record class DailyMinAndMaxResult(VSDateTime DateTime, double Min, double Max, double RateMin, double RateMax);

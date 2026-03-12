@@ -1,24 +1,15 @@
 ﻿using AirThermoMod.Common;
 using AirThermoMod.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vintagestory;
-using Vintagestory.API.Client;
-using Vintagestory.API.MathTools;
-using Vintagestory.API.Server;
-using Vintagestory.Client.NoObf;
-using Vintagestory.GameContent;
-using Vintagestory.Server;
+using MNGui.DialogBuilders;
 using MNGui.GuiElements;
 using MNGui.Layouts;
 using MNGui.Layouts.Extensions;
 using MNGui.Std;
-using MNGui.DialogBuilders;
-using Vintagestory.ServerMods;
-using MNGui.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Vintagestory.API.Client;
+using Vintagestory.API.MathTools;
 
 namespace AirThermoMod.GUI {
     /// <summary>
