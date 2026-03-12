@@ -1,18 +1,7 @@
 ﻿using AirThermoMod.Common;
-using AirThermoMod.Core;
-using AirThermoMod.VS;
-using FluentAssertions;
 using ProtoBuf;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using Vintagestory.API.Common;
-using Vintagestory.API.Datastructures;
-using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
-using Vintagestory.Client;
-using Vintagestory.Client.NoObf;
-using Vintagestory.Common;
-using Vintagestory.GameContent;
 
 namespace AirThermoMod.Tests {
     [ProtoContract(SkipConstructor = true)]

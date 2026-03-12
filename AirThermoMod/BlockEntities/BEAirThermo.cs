@@ -4,11 +4,6 @@ using AirThermoMod.GUI;
 using AirThermoMod.VS;
 using ProtoBuf;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -16,10 +11,6 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
-using Vintagestory.Client.NoObf;
-using Vintagestory.Common;
-using Vintagestory.GameContent;
-using Vintagestory.Server;
 
 namespace AirThermoMod.BlockEntities {
     public enum AirThermoPacketId {

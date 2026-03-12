@@ -1,12 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using AirThermoMod.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using AirThermoMod.Common;
 using FluentAssertions;
-using AirThermoMod.Common;
 
 namespace AirThermoMod.Core.Tests {
     [TestClass()]

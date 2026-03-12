@@ -1,13 +1,5 @@
 ﻿using AirThermoMod.Core;
-using AirThermoMod.VS;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using Vintagestory.API.Datastructures;
 
 namespace AirThermoMod.VS.Tests {
