@@ -6,6 +6,7 @@ using AirThermoMod.Items;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.API.Server;
 
 namespace AirThermoMod {
@@ -55,14 +56,11 @@ namespace AirThermoMod {
             var baseCommand = api.ChatCommands
                 .Create(ROOT_COMMAND_NAME)
                 .RequiresPrivilege(Privilege.chat)
-                .RequiresPlayer()
-                .HandleWith((args) => {
-                    return TextCommandResult.Success("See `.chb` for usage", null);
-                });
+                .RequiresPlayer();
 
             // Define sub command `force-sample-all` 
             baseCommand.BeginSubCommand("force-sample-all")
-                .WithDescription("Forces the targeted thermometer to get temperature data over the entire retention period (one in-game year)")
+                .WithDescription(Lang.Get(TrUtil.LK("commanddesc-force-sample-all")))
                 .RequiresPrivilege(Privilege.chat)
                 .RequiresPlayer()
                 .HandleWith(CmdForceSampleAll);
@@ -90,7 +88,7 @@ namespace AirThermoMod {
                 .RequiresPlayer();
 
             baseCommand.BeginSubCommand("unit")
-                .WithDescription("Pass 'c' or 'f' to specify the temperature unit. Pass 'u' to reset to the default, which automatically switches temperature unit based on other Fahrenheit unit mod (e.g. FreedomUnits)")
+                .WithDescription(Lang.Get(TrUtil.LK("commanddesc-unit")))
                 .WithArgs(parsers.OptionalWordRange("unit", ["u", "unspecified", "c", "celsius", "f", "fahrenheit"]))
                 .HandleWith(args => {
                     if (ClientConfig == null) {
@@ -110,13 +108,13 @@ namespace AirThermoMod {
                         }
                     }
 
-                    resultSB.AppendLine($"Current unit setting: {ClientConfig.unitSetting}");
+                    resultSB.AppendLine(Lang.Get(TrUtil.LK("commandresult-currentunitsetting"), ClientConfig.unitSetting.Tr()));
                     if (ClientConfig.unitSetting == TemperatureUnitSetting.Unspecified) {
                         if (IsTemperatureUnitFahrenheit) {
-                            resultSB.AppendLine("Will use Fahrenheit since a Fahrenheit unit mod (e.g. FreedomUnits) is enabled");
+                            resultSB.AppendLine(Lang.Get(TrUtil.LK("commandresult-willuse-fahrenheit")));
                         }
                         else {
-                            resultSB.AppendLine("Will use Celsius since no Fahrenheit unit mod (e.g. FreedomUnits) is active");
+                            resultSB.AppendLine(Lang.Get(TrUtil.LK("commandresult-willuse-celcsius")));
                         }
                     }
 
@@ -137,11 +135,11 @@ namespace AirThermoMod {
                 }
                 var beAirThermo = sapi.World.BlockAccessor.GetBlockEntity(bePos) as BEAirThermo;
                 if (beAirThermo == null) {
-                    return TextCommandResult.Error("Error: No thermometers targeted");
+                    return TextCommandResult.Error(Lang.Get(TrUtil.LK("commandresult-notarget")));
                 }
                 else {
                     beAirThermo.ScheduleForceSampleOverRetentionPeriod();
-                    return TextCommandResult.Success("Scheduled sampling temperature over retention period (might take some seconds)");
+                    return TextCommandResult.Success(Lang.Get(TrUtil.LK("commandresult-scheduledsampling")));
                 }
             }
             return TextCommandResult.Success("");
@@ -156,6 +154,7 @@ namespace AirThermoMod {
 
             return displayTemperature;
         }
+
         public string GetTemperatureUnitString() {
             var unit = "°C";
 

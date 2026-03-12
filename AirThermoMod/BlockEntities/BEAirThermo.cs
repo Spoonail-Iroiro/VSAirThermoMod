@@ -71,7 +71,7 @@ namespace AirThermoMod.BlockEntities {
             if (Api is not ICoreClientAPI capi) return;
 
             if (clientDialog == null) {
-                clientDialog = new GuiDialogBlockEntityAirThermo("Thermometer", Pos, capi, temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
+                clientDialog = new GuiDialogBlockEntityAirThermo(Lang.Get(TrUtil.LK("thermometerdialog-title")), Pos, capi, temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
                 clientDialog.ReverseOrderButtonClicked = OnReverseOrderButtonClicked;
             }
 
@@ -197,7 +197,7 @@ namespace AirThermoMod.BlockEntities {
 
                             MarkDirty();
 
-                            splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-imported-recordedchartpaper"));
+                            splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LK("message-imported-recordedchartpaper"));
 
                             Api.World.PlaySoundFor(
                                 new AssetLocation("sounds/block/sand"),
@@ -206,7 +206,7 @@ namespace AirThermoMod.BlockEntities {
                             );
                         }
                         else {
-                            splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-not-imported-same-pos"));
+                            splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LK("message-not-imported-same-pos"));
                         }
 
                         ahs.TakeOut(1);
