@@ -16,32 +16,32 @@
 	"elements": [
 		{
 			"name": "Roof1",
-			"from": [ -2.0, 24.0, 0.0 ],
-			"to": [ 10.0, 25.5, 16.0 ],
-			"rotationOrigin": [ -2.0, 24.0, 0.0 ],
+			"from": [ -2.0, 24.0, 0.05 ],
+			"to": [ 10.0, 25.5, 15.95 ],
+			"rotationOrigin": [ -2.0, 24.0, 0.05 ],
 			"rotationZ": 22.5,
 			"faces": {
 				"north": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 12.0, 1.5 ] },
-				"east": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 16.0, 1.5 ] },
+				"east": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 15.5, 1.5 ] },
 				"south": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 12.0, 1.5 ] },
 				"west": { "texture": "#baldcypress", "uv": [ 0.5, 0.0, 15.5, 16.0 ], "autoUv": false },
-				"up": { "texture": "#baldcypress", "uv": [ 4.0, 0.0, 16.0, 16.0 ] },
-				"down": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 12.0, 16.0 ] }
+				"up": { "texture": "#baldcypress", "uv": [ 4.0, 0.0, 16.0, 15.5 ] },
+				"down": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 12.0, 15.5 ] }
 			},
 			"children": [
 				{
 					"name": "Roof3",
-					"from": [ 9.9829, 0.844, 0.0 ],
-					"to": [ 21.9829, 2.344, 16.0 ],
+					"from": [ 9.98, 0.844, 0.0 ],
+					"to": [ 21.98, 2.344, 15.9 ],
 					"rotationOrigin": [ 9.9829, 0.844, 0.0 ],
 					"rotationZ": -45.0,
 					"faces": {
 						"north": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 12.0, 1.5 ], "autoUv": false },
-						"east": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 16.0, 1.5 ] },
+						"east": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 15.5, 1.5 ] },
 						"south": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 12.0, 1.5 ] },
 						"west": { "texture": "#baldcypress", "uv": [ 0.5, 0.0, 15.5, 16.0 ], "autoUv": false },
-						"up": { "texture": "#baldcypress", "uv": [ 4.0, 0.0, 16.0, 16.0 ] },
-						"down": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 12.0, 16.0 ] }
+						"up": { "texture": "#baldcypress", "uv": [ 4.0, 0.0, 16.0, 15.5 ] },
+						"down": { "texture": "#baldcypress", "uv": [ 0.0, 0.0, 12.0, 15.5 ] }
 					}
 				}
 			]
