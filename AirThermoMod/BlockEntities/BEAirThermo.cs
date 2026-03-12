@@ -4,11 +4,6 @@ using AirThermoMod.GUI;
 using AirThermoMod.VS;
 using ProtoBuf;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -16,10 +11,6 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
-using Vintagestory.Client.NoObf;
-using Vintagestory.Common;
-using Vintagestory.GameContent;
-using Vintagestory.Server;
 
 namespace AirThermoMod.BlockEntities {
     public enum AirThermoPacketId {
@@ -80,7 +71,7 @@ namespace AirThermoMod.BlockEntities {
             if (Api is not ICoreClientAPI capi) return;
 
             if (clientDialog == null) {
-                clientDialog = new GuiDialogBlockEntityAirThermo("Thermometer", Pos, capi, temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
+                clientDialog = new GuiDialogBlockEntityAirThermo(Lang.Get(TrUtil.LK("thermometerdialog-title")), Pos, capi, temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
                 clientDialog.ReverseOrderButtonClicked = OnReverseOrderButtonClicked;
             }
 
@@ -206,7 +197,7 @@ namespace AirThermoMod.BlockEntities {
 
                             MarkDirty();
 
-                            splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-imported-recordedchartpaper"));
+                            splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LK("message-imported-recordedchartpaper"));
 
                             Api.World.PlaySoundFor(
                                 new AssetLocation("sounds/block/sand"),
@@ -215,7 +206,7 @@ namespace AirThermoMod.BlockEntities {
                             );
                         }
                         else {
-                            splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LocalKey("message-not-imported-same-pos"));
+                            splr.SendLocalisedMessage(GlobalConstants.CurrentChatGroup, TrUtil.LK("message-not-imported-same-pos"));
                         }
 
                         ahs.TakeOut(1);
@@ -352,7 +343,8 @@ namespace AirThermoMod.BlockEntities {
                 capi.Network.SendBlockEntityPacket(Pos, (int)AirThermoPacketId.GuiSettingChanged, guiSetting);
             }
 
-            clientDialog?.SetupDialog(temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
+            //clientDialog?.SetupDialog(temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
+            clientDialog?.UpdateTable(temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
 
             return true;
         }

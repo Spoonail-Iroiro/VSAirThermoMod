@@ -1,12 +1,7 @@
 ﻿using AirThermoMod.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading.Tasks;
 using Vintagestory.API.Datastructures;
-using Vintagestory.Server;
 
 namespace AirThermoMod.VS {
     internal static class VSAttributeEncoder {

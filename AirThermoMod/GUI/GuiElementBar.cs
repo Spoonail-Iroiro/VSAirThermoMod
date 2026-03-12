@@ -1,9 +1,4 @@
 ﻿using Cairo;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Vintagestory.API.Client;
 
 namespace AirThermoMod.GUI {
@@ -30,7 +25,7 @@ namespace AirThermoMod.GUI {
             GuiElement.RoundRectangle(ctx, Bounds.drawX, Bounds.drawY, Bounds.InnerWidth, Bounds.InnerHeight, 1.0);
             ctx.SetSourceRGBA(0.15, 0.15, 0.15, 1.0);
             ctx.Fill();
-            EmbossRoundRectangleElement(ctx, Bounds, inverse: false, 3, 1);
+            EmbossRoundRectangleElement(ctx, Bounds, inverse: false, 2, 1);
             ComposeValue(ctx, surface);
         }
 
