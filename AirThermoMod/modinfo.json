@@ -2,11 +2,9 @@
   "type": "code",
   "name": "Self-Recording Thermometer",
   "modid": "airthermomod",
-  "version": "0.3.0",
+  "version": "0.4.0-rc.2",
   "description": "Adds self-recording thermometer",
-  "authors": [
-    "Spoonail"
-  ],
+  "authors": ["Spoonail"],
   "side": "Universal",
   "dependencies": {
     "game": "1.21.0-rc.1"

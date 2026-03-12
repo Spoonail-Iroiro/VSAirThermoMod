@@ -352,7 +352,8 @@ namespace AirThermoMod.BlockEntities {
                 capi.Network.SendBlockEntityPacket(Pos, (int)AirThermoPacketId.GuiSettingChanged, guiSetting);
             }
 
-            clientDialog?.SetupDialog(temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
+            //clientDialog?.SetupDialog(temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
+            clientDialog?.UpdateTable(temperatureRecorder.TemperatureSamples, guiSetting.TableSortOrder);
 
             return true;
         }
