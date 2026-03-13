@@ -6,21 +6,18 @@ namespace AirThermoMod.Blocks {
     internal class BlockAirThermoUpper : Block {
 
         public override void OnBlockBroken(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1) {
-            var block = world.BlockAccessor.GetBlock(pos.DownCopy()) as BlockAirThermo;
-            if (block != null) block.OnBlockBroken(world, pos.DownCopy(), byPlayer, dropQuantityMultiplier);
+            var downPos = pos.DownCopy();
+            if (world.BlockAccessor.GetBlock(downPos) is BlockAirThermo block) block.OnBlockBroken(world, downPos, byPlayer, dropQuantityMultiplier);
         }
 
         public override ItemStack OnPickBlock(IWorldAccessor world, BlockPos pos) {
-            var block = world.BlockAccessor.GetBlock(pos.DownCopy()) as BlockAirThermo;
-            if (block != null) return block.OnPickBlock(world, pos.DownCopy());
+            var downPos = pos.DownCopy();
+            if (world.BlockAccessor.GetBlock(downPos) is BlockAirThermo block) return block.OnPickBlock(world, downPos);
             return base.OnPickBlock(world, pos);
         }
 
         public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel) {
-            var block = world.BlockAccessor.GetBlock(blockSel.Position.DownCopy()) as BlockAirThermo;
-            var be = world.BlockAccessor.GetBlockEntity(blockSel.Position.DownCopy()) as BEAirThermo;
-
-            if (be != null) {
+            if (world.BlockAccessor.GetBlockEntity(blockSel.Position.DownCopy()) is BEAirThermo be) {
                 return be.Interact(world, byPlayer);
             }
             else {
@@ -30,7 +27,7 @@ namespace AirThermoMod.Blocks {
             return base.OnBlockInteractStart(world, byPlayer, blockSel);
         }
 
-        public override bool DoParticalSelection(IWorldAccessor world, BlockPos pos) {
+        public override bool DoPartialSelection(IWorldAccessor world, BlockPos pos) {
             return true;
         }
     }

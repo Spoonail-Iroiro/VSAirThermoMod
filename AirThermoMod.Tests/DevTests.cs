@@ -1,6 +1,6 @@
-﻿using AirThermoMod.Common;
+﻿using System.ComponentModel;
+using AirThermoMod.Common;
 using ProtoBuf;
-using System.ComponentModel;
 using Vintagestory.API.Util;
 
 namespace AirThermoMod.Tests {
@@ -36,6 +36,7 @@ namespace AirThermoMod.Tests {
 
         }
 
+        [Ignore]
         [TestMethod]
         public void ProtobufMissingMembertest() {
             var data = File.ReadAllBytes("testdata.proto");

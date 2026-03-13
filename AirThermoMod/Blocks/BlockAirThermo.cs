@@ -4,22 +4,22 @@ using Vintagestory.API.MathTools;
 
 namespace AirThermoMod.Blocks {
     internal class BlockAirThermo : Block {
+        public AssetLocation UpperBlockCode => new AssetLocation("airthermomod:airthermoupper-" + Variant["orientation"]);
+
 
         public override void OnBlockPlaced(IWorldAccessor world, BlockPos blockPos, ItemStack? byItemStack = null) {
             base.OnBlockPlaced(world, blockPos, byItemStack);
 
-            var toPlaceBlock = world.GetBlock(new AssetLocation("airthermomod:airthermoupper-" + Variant["orientation"]));
+            var upperBlock = world.GetBlock(UpperBlockCode);
 
-            world.BlockAccessor.SetBlock(toPlaceBlock.BlockId, blockPos.UpCopy());
-
-            var be = GetBlockEntity<BEAirThermo>(blockPos);
-            be?.OnBlockPlaced();
+            world.BlockAccessor.SetBlock(upperBlock!.BlockId, blockPos.UpCopy());
         }
 
         public override void OnBlockBroken(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1) {
-            var upBlock = api.World.BlockAccessor.GetBlock(pos.UpCopy());
-            if (upBlock.Code.Path == "airthermoupper-" + Variant["orientation"]) {
-                world.BlockAccessor.SetBlock(0, pos.UpCopy());
+            var upperPos = pos.UpCopy();
+            var upBlock = api.World.BlockAccessor.GetBlock(upperPos);
+            if (upBlock.Code == UpperBlockCode) {
+                world.BlockAccessor.SetBlock(0, upperPos);
             }
 
             base.OnBlockBroken(world, pos, byPlayer, dropQuantityMultiplier);
@@ -42,7 +42,6 @@ namespace AirThermoMod.Blocks {
             }
             else {
                 api.Logger.Warning("Couldn't find Block Entity (BEAirThermo). Have you loaded this save without mods?");
-
             }
 
             return base.OnBlockInteractStart(world, byPlayer, blockSel);

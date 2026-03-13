@@ -1,9 +1,9 @@
-﻿using AirThermoMod.Common;
+﻿using System;
+using AirThermoMod.Common;
 using AirThermoMod.Core;
 using AirThermoMod.GUI;
 using AirThermoMod.VS;
 using ProtoBuf;
-using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -45,7 +45,7 @@ namespace AirThermoMod.BlockEntities {
             base.Initialize(api);
 
             if (api is ICoreServerAPI sapi) {
-                RegisterGameTickListener(Update, 3300 + rand.Next(500));
+                RegisterGameTickListener(Update, 3500, rand.Next(3500));
 
                 var modSystem = sapi.ModLoader.GetModSystem<AirThermoModModSystem>();
                 if (modSystem != null) {
@@ -215,9 +215,14 @@ namespace AirThermoMod.BlockEntities {
                         var materialStack = recordedChartPaperStack.Attributes.GetItemstack("material");
 
                         if (materialStack != null) {
-                            materialStack.ResolveBlockOrItem(world);
-                            if (!byPlayer.InventoryManager.TryGiveItemstack(materialStack, true)) {
-                                Api.World.SpawnItemEntity(materialStack, byPlayer.Entity.Pos.XYZ.AddCopy(0, 2, 0));
+                            var resolved = materialStack.ResolveBlockOrItem(world);
+                            if (resolved) {
+                                if (!byPlayer.InventoryManager.TryGiveItemstack(materialStack, true)) {
+                                    Api.World.SpawnItemEntity(materialStack, byPlayer.Entity.Pos.XYZ.AddCopy(0, 2, 0));
+                                }
+                            }
+                            else {
+                                Api.Logger.Warning($"Couldn't return the material of chart paper because failed to resolve: {materialStack.Collectible.Code}");
                             }
                         }
 
